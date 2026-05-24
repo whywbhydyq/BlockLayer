@@ -1,12 +1,26 @@
-import type { BlueprintResult } from '@/lib/geometry';
+import type { BlueprintResult, LayeredResult } from '@/lib/geometry';
+
+function isLayeredResult(result: BlueprintResult): result is LayeredResult {
+  return result.shape === 'sphere' || result.shape === 'dome';
+}
 
 export function CoordinateReadout({ result, layerIndex }: { result: BlueprintResult; layerIndex: number }) {
-  const bounds = result.shape === 'sphere' || result.shape === 'dome' ? (result.layers[layerIndex] || result.layers[0]).bounds : result.bounds;
-  const layer = result.shape === 'sphere' || result.shape === 'dome' ? result.layers[layerIndex] || result.layers[0] : null;
+  if (isLayeredResult(result)) {
+    const layer = result.layers[layerIndex] || result.layers[0];
+    const bounds = layer.bounds;
+    return (
+      <section className="coordinate-readout" aria-label="Coordinate bounds">
+        <strong>Coordinate readout</strong>
+        <p>X {bounds.minX}..{bounds.maxX} · Z {bounds.minZ}..{bounds.maxZ} · Layer {layer.index + 1} at Y {layer.y}</p>
+      </section>
+    );
+  }
+
+  const bounds = result.bounds;
   return (
     <section className="coordinate-readout" aria-label="Coordinate bounds">
       <strong>Coordinate readout</strong>
-      <p>X {bounds.minX}..{bounds.maxX} · Z {bounds.minZ}..{bounds.maxZ}{layer ? ` · Layer ${layer.index + 1} at Y ${layer.y}` : ''}</p>
+      <p>X {bounds.minX}..{bounds.maxX} · Z {bounds.minZ}..{bounds.maxZ}</p>
     </section>
   );
 }
