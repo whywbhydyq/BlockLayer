@@ -1,6 +1,6 @@
 'use client';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import type { BlueprintResult } from '@/lib/geometry';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import type { BlueprintResult, TwoDimensionalResult } from '@/lib/geometry';
 import { trackToolEvent } from '@/lib/analytics/events';
 import { downloadCanvasPng } from '@/lib/export/exportPng';
 import { drawBlueprintGrid } from '@/lib/render/canvasRenderer';
@@ -21,13 +21,18 @@ type Props = {
   highlightedRowZ?: number | null;
 };
 
+function isTwoDimensionalResult(result: BlueprintResult): result is TwoDimensionalResult {
+  return result.shape === 'circle' || result.shape === 'ellipse';
+}
+
 function view(result: BlueprintResult, layerIndex: number) {
-  if (result.shape === 'sphere' || result.shape === 'dome') {
-    const layer = result.layers[layerIndex] || result.layers[0];
-    const previous = result.layers[Math.max(0, layerIndex - 1)] || null;
-    return { cells: layer.cells, bounds: layer.bounds, rows: layer.rows, previousCells: previous?.cells || [] };
+  if (isTwoDimensionalResult(result)) {
+    return { cells: result.cells, bounds: result.bounds, rows: result.rows, previousCells: [] };
   }
-  return { cells: result.cells, bounds: result.bounds, rows: result.rows, previousCells: [] };
+
+  const layer = result.layers[layerIndex] || result.layers[0];
+  const previous = result.layers[Math.max(0, layerIndex - 1)] || null;
+  return { cells: layer.cells, bounds: layer.bounds, rows: layer.rows, previousCells: previous?.cells || [] };
 }
 
 export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function BlueprintCanvas({ result, selectedLayerIndex, showCoordinates, showSegments, showGhost, highContrast, highlightedRowZ }, ref) {
@@ -39,7 +44,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const data = useMemo(() => view(result, selectedLayerIndex), [result, selectedLayerIndex]);
 
-  function draw(canvas: HTMLCanvasElement, exportScale = 1) {
+  const draw = useCallback((canvas: HTMLCanvasElement, exportScale = 1) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const cssWidth = canvas.clientWidth || 900;
@@ -65,24 +70,26 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
       highContrast,
       highlightedRowZ
     });
-  }
+  }, [data, highContrast, highlightedRowZ, offset, scale, showCoordinates, showGhost, showSegments]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     draw(canvas);
-  }, [data, scale, offset, showCoordinates, showSegments, showGhost, highContrast, highlightedRowZ]);
+  }, [draw]);
 
-  function fitToScreen() {
+  const fitToScreen = useCallback(() => {
     trackToolEvent('fit_to_screen_clicked', { shape: result.shape });
     const wrap = wrapRef.current;
     if (!wrap) return;
     const viewport = fitBoundsToViewport(data.bounds, wrap.clientWidth, wrap.clientHeight);
     setScale(viewport.scale);
     setOffset(viewport.offset);
-  }
+  }, [data.bounds, result.shape]);
 
-  useEffect(() => { fitToScreen(); }, [result.shape, result.dimensions.width, result.dimensions.height, selectedLayerIndex]);
+  useEffect(() => {
+    fitToScreen();
+  }, [fitToScreen, result.dimensions.width, result.dimensions.height, selectedLayerIndex]);
 
   useImperativeHandle(ref, () => ({
     exportPng(filename: string) {
@@ -91,7 +98,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
       downloadCanvasPng(source, filename);
     },
     fitToScreen
-  }));
+  }), [fitToScreen]);
 
   function onWheel(event: React.WheelEvent<HTMLCanvasElement>) {
     event.preventDefault();
