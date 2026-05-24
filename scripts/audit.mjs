@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const required = [
   'src/app/page.tsx',
   'src/app/tools/minecraft-circle-generator/page.tsx',
@@ -164,7 +165,6 @@ const analyticsEvents = [
 ];
 for (const eventName of analyticsEvents) if (!corpus.includes(eventName)) failures.push(`Missing required analytics event: ${eventName}`);
 
-
 if (corpus.includes('var(--border)') || corpus.includes('var(--card)')) failures.push('Found undefined CSS variables from old component styles');
 if (!projectCorpus.includes('noscript')) failures.push('Missing no-JS fallback');
 if (!projectCorpus.includes('id="main"')) failures.push('Missing skip-link main target');
@@ -195,7 +195,6 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 for (const script of ['test', 'audit', 'lint', 'build', 'format', 'format:check']) if (!packageJson.scripts?.[script]) failures.push(`Missing package script: ${script}`);
 if (!packageJson.devDependencies?.prettier) failures.push('Missing Prettier devDependency');
 if (!projectCorpus.includes('export tests passed')) failures.push('Missing export test runtime assertion');
-
 
 const adsTxtPath = join(root, 'public/ads.txt');
 const adsTxt = existsSync(adsTxtPath) ? readFileSync(adsTxtPath, 'utf8').trim() : '';
