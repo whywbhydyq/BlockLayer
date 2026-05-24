@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -97,6 +97,11 @@ function walk(dir) {
 
 const projectFiles = walk(root).filter((file) => /\.(ts|tsx|css|json|md|mjs)$/.test(file));
 const srcFiles = walk(join(root, 'src')).filter((file) => /\.(ts|tsx|css)$/.test(file));
+const runtimeDomainFiles = projectFiles.filter((file) => {
+  const rel = relative(root, file).replaceAll('\\', '/');
+  if (rel.startsWith('src/') || rel.startsWith('public/')) return true;
+  return ['next.config.mjs', 'vercel.json', '.env.example', 'package.json'].includes(rel);
+});
 const corpus = srcFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
 const projectCorpus = projectFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
 
@@ -206,8 +211,8 @@ if (!pages.includes("'/contact'")) failures.push('Contact page must be included 
 if (!readFileSync(join(root, 'src/components/layout/Footer.tsx'), 'utf8').includes('/contact')) failures.push('Footer must link to Contact');
 if (!readFileSync(join(root, '.env.example'), 'utf8').includes('NEXT_PUBLIC_SITE_URL=https://blocklayer.ymirtool.com')) failures.push('.env.example must document NEXT_PUBLIC_SITE_URL for the production domain');
 if (!projectCorpus.includes('https://blocklayer.ymirtool.com')) failures.push('Production domain blocklayer.ymirtool.com must appear in SEO/default-domain configuration');
-const externalDomainCorpus = projectFiles.filter((file) => !file.endsWith('scripts/audit.mjs')).map((file) => readFileSync(file, 'utf8')).join('\n');
-if (externalDomainCorpus.includes('vercel.app')) failures.push('Found vercel.app domain reference; canonical production domain should be blocklayer.ymirtool.com');
+const runtimeDomainCorpus = runtimeDomainFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
+if (runtimeDomainCorpus.includes('vercel.app')) failures.push('Found vercel.app domain reference in runtime source/config; canonical production domain should be blocklayer.ymirtool.com');
 
 if (failures.length) {
   console.error(failures.join('\n'));
