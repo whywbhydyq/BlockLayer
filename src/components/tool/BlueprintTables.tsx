@@ -1,16 +1,20 @@
 'use client';
 import { siteUrl } from '@/lib/seo/pages';
-import type { BlueprintResult } from '@/lib/geometry';
+import type { BlueprintResult, LayeredResult } from '@/lib/geometry';
 import { LayerSummaryTable } from './LayerSummaryTable';
 import { RowSegmentTable } from './RowSegmentTable';
 
+function isLayeredResult(result: BlueprintResult): result is LayeredResult {
+  return result.shape === 'sphere' || result.shape === 'dome';
+}
+
 export function rowsForResult(result: BlueprintResult, layerIndex: number) {
-  if (result.shape === 'circle' || result.shape === 'ellipse') return result.rows;
+  if (!isLayeredResult(result)) return result.rows;
   return (result.layers[layerIndex] || result.layers[0]).rows;
 }
 
 export function BlueprintTables({ result, layerIndex, printMode, printStartLayer, printEndLayer, selectedRowIndex, setSelectedRowIndex }: { result: BlueprintResult; layerIndex: number; printMode: 'current' | 'all' | 'selected'; printStartLayer: number; printEndLayer: number; selectedRowIndex: number; setSelectedRowIndex: (index: number) => void }) {
-  if (result.shape === 'circle' || result.shape === 'ellipse') {
+  if (!isLayeredResult(result)) {
     const rows = result.rows;
     return (
       <section className="data-panel printable-data">
