@@ -1,137 +1,196 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackToolEvent } from '@/lib/analytics/events';
-import { exportBlueprintCsv, layerSummaryText, rowListText, summaryText } from '@/lib/export/exportCsv';
-import { exportBlueprintSvg } from '@/lib/export/exportSvg';
+import { rowListText } from '@/lib/export/exportCsv';
 import { safeExportFilename } from '@/lib/export/filenames';
-import { requestBrowserPrint, type PrintMode } from '@/lib/export/exportPrint';
-import { generateCircle, generateDome, generateEllipse, generateSphere, type BlueprintResult, type LayeredResult, type RowSegment, type ShapeKind } from '@/lib/geometry';
+import { requestBrowserPrint } from '@/lib/export/exportPrint';
+import { generateCircle, generateEllipse, type RowSegment, type TwoDimensionalResult } from '@/lib/geometry';
 import { BlueprintCanvas, type BlueprintCanvasHandle } from './BlueprintCanvas';
-import { BlueprintTables, rowsForResult } from './BlueprintTables';
-import { CircleControls } from './CircleControls';
-import { CoordinateReadout } from './CoordinateReadout';
-import { DisplayOptions } from './DisplayOptions';
-import { DomeControls } from './DomeControls';
-import { EllipseControls } from './EllipseControls';
-import { ExportPanel } from './ExportPanel';
-import { InputPanel } from './InputPanel';
-import { LayerSlider } from './LayerSlider';
-import { PresetSelector, type PresetPatch } from './PresetSelector';
-import { ResultsPanel } from './ResultsPanel';
-import { ShapeControls } from './ShapeControls';
-import { SphereControls } from './SphereControls';
-import { WarningPanel } from './WarningPanel';
-import { initialFormState, parseNumber, shapeLabels, type FormState, type ToolShellProps } from './controlTypes';
+import { initialFormState, parseNumber, type FormState, type ToolShellProps } from './controlTypes';
 
-function generate(state: FormState): BlueprintResult {
-  if (state.shape === 'ellipse') return generateEllipse({ width: state.width, height: state.height, fillMode: state.fillMode, thickness: state.thickness });
-  if (state.shape === 'sphere') return generateSphere({ inputMode: state.inputMode, diameter: state.diameter, radius: state.radius, mode: state.solidMode, shellThickness: state.shellThickness, buildDirection: state.buildDirection });
-  if (state.shape === 'dome') return generateDome({ inputMode: state.inputMode, diameter: state.diameter, radius: state.radius, mode: state.solidMode, shellThickness: state.shellThickness, capHeight: state.capHeight, buildDirection: state.buildDirection, half: state.domeHalf });
-  return generateCircle({ inputMode: state.inputMode, diameter: state.diameter, radius: state.radius, fillMode: state.fillMode, thickness: state.thickness });
+type BuilderShape = 'circle' | 'ellipse';
+
+type BuilderState = Pick<FormState, 'inputMode' | 'diameter' | 'radius' | 'width' | 'height' | 'fillMode' | 'thickness'> & {
+  shape: BuilderShape;
+};
+
+function normalizeInitialState(props: ToolShellProps): BuilderState {
+  const initial = initialFormState(props);
+  return {
+    shape: initial.shape === 'ellipse' ? 'ellipse' : 'circle',
+    inputMode: initial.inputMode,
+    diameter: initial.diameter,
+    radius: initial.radius,
+    width: props.initialWidth || initial.width,
+    height: props.initialHeight || initial.height,
+    fillMode: initial.fillMode,
+    thickness: initial.thickness
+  };
 }
 
-function asLayered(result: BlueprintResult): LayeredResult | null {
-  return result.shape === 'sphere' || result.shape === 'dome' ? result : null;
+function generateBlueprint(state: BuilderState): TwoDimensionalResult {
+  if (state.shape === 'ellipse') {
+    return generateEllipse({ width: state.width, height: state.height, fillMode: state.fillMode, thickness: state.thickness });
+  }
+  return generateCircle({
+    inputMode: state.inputMode,
+    diameter: state.diameter,
+    radius: state.radius,
+    fillMode: state.fillMode,
+    thickness: state.thickness
+  });
+}
+
+function clampInt(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, Math.round(value || min)));
 }
 
 function segmentText(row: RowSegment) {
-  return row.segments.map((segment) => `${segment.startX}..${segment.endX} (${segment.length})`).join('; ');
+  return row.segments.map((segment) => `X ${segment.startX} to ${segment.endX} (${segment.length})`).join('; ');
 }
 
+function centerTitle(result: TwoDimensionalResult) {
+  return result.centerType === 'single-block' ? 'Single center block' : 'Between four blocks';
+}
+
+function centerSubtitle(result: TwoDimensionalResult) {
+  return result.centerType === 'single-block' ? 'Odd diameter' : 'Even diameter';
+}
+
+function boundsText(result: TwoDimensionalResult) {
+  return `X ${result.bounds.minX} to ${result.bounds.maxX}, Z ${result.bounds.minZ} to ${result.bounds.maxZ}`;
+}
+
+function stacksText(result: TwoDimensionalResult) {
+  if (result.stacks.remainder === 0) return `${result.stacks.fullStacks} stacks`;
+  return `${result.stacks.fullStacks} stacks + ${result.stacks.remainder} blocks`;
+}
+
+const oddDiameters = [15, 19, 23, 31, 33, 39, 51];
+
 export function ToolShell(props: ToolShellProps) {
-  const [state, setState] = useState<FormState>(() => initialFormState(props));
-  const [layerIndex, setLayerIndex] = useState(0);
-  const [selectedRowIndex, setSelectedRowIndex] = useState(0);
+  const [state, setState] = useState<BuilderState>(() => normalizeInitialState(props));
+  const [showCenter, setShowCenter] = useState(true);
+  const [showAxis, setShowAxis] = useState(true);
+  const [showCoordinates, setShowCoordinates] = useState(true);
+  const [showRowLabels, setShowRowLabels] = useState(true);
   const [copied, setCopied] = useState('');
-  const [printMode, setPrintMode] = useState<PrintMode>('current');
-  const [printStartLayer, setPrintStartLayer] = useState(1);
-  const [printEndLayer, setPrintEndLayer] = useState(8);
+  const [manualCopy, setManualCopy] = useState<{ label: string; text: string } | null>(null);
+  const [zoomPercent, setZoomPercent] = useState(100);
+  const [buildMode, setBuildMode] = useState(false);
+  const [currentRowIndex, setCurrentRowIndex] = useState(0);
+  const [completedRows, setCompletedRows] = useState<Set<number>>(() => new Set());
   const canvasRef = useRef<BlueprintCanvasHandle | null>(null);
-  const result = useMemo(() => generate(state), [state]);
-  const layered = asLayered(result);
-  const currentRows = useMemo(() => rowsForResult(result, layerIndex), [result, layerIndex]);
-  const currentRow = currentRows[selectedRowIndex] || currentRows[0] || null;
+  const manualCopyRef = useRef<HTMLTextAreaElement | null>(null);
+  const companionRef = useRef<HTMLElement | null>(null);
+  const result = useMemo(() => generateBlueprint(state), [state]);
+  const rows = 'rows' in result ? result.rows : [];
+  const currentRow = rows[Math.min(currentRowIndex, Math.max(0, rows.length - 1))] || null;
+  const completedCount = rows.filter((row) => completedRows.has(row.z)).length;
 
   useEffect(() => {
-    trackToolEvent('tool_view', { shape: state.shape, title: props.title || 'BlockLayer generator' });
+    trackToolEvent('tool_view', { shape: state.shape, title: 'Minecraft Circle & Oval Blueprint Builder' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    trackToolEvent('generate_success', { shape: result.shape, totalBlocks: result.totalBlocks, warnings: result.warnings.length });
-    if (result.warnings.some((warning) => warning.code === 'LARGE_BLUEPRINT' || warning.code === 'PERFORMANCE_DEGRADED')) {
-      trackToolEvent('large_blueprint_warning', { shape: result.shape, totalBlocks: result.totalBlocks });
-    }
-  }, [result]);
+    if (!manualCopy) return;
+    window.setTimeout(() => {
+      manualCopyRef.current?.focus();
+      manualCopyRef.current?.select();
+    }, 0);
+  }, [manualCopy]);
+
+  useEffect(() => {
+    if (!buildMode) return;
+    window.setTimeout(() => companionRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
+  }, [buildMode]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const shape = params.get('shape') as ShapeKind | null;
+    const shapeParam = params.get('shape');
+    const shape: BuilderShape = shapeParam === 'ellipse' || shapeParam === 'oval' ? 'ellipse' : 'circle';
     setState((previous) => ({
       ...previous,
-      shape: shape && shape in shapeLabels ? shape : previous.shape,
-      diameter: parseNumber(params.get('d'), previous.diameter),
-      radius: parseNumber(params.get('r'), previous.radius),
-      width: parseNumber(params.get('w'), previous.width),
-      height: parseNumber(params.get('h'), previous.height),
+      shape,
+      diameter: clampInt(parseNumber(params.get('d'), previous.diameter), 3, 512),
+      radius: clampInt(parseNumber(params.get('r'), previous.radius), 2, 256),
+      width: clampInt(parseNumber(params.get('w'), previous.width), 3, 512),
+      height: clampInt(parseNumber(params.get('h'), previous.height), 3, 512),
       inputMode: params.get('input') === 'radius' ? 'radius' : previous.inputMode,
       fillMode: params.get('fill') === 'filled' ? 'filled' : previous.fillMode,
-      solidMode: params.get('solid') === 'solid' ? 'solid' : previous.solidMode
+      thickness: clampInt(parseNumber(params.get('t'), previous.thickness), 1, 8)
     }));
   }, []);
 
   useEffect(() => {
-    if (layered) setLayerIndex((value) => Math.min(value, Math.max(0, layered.layerCount - 1)));
-    else setLayerIndex(0);
-    setSelectedRowIndex(0);
-  }, [layered, result.shape, result.totalBlocks]);
-
-  useEffect(() => {
     const params = new URLSearchParams();
     params.set('shape', state.shape);
+    params.set('fill', state.fillMode);
+    params.set('t', String(state.thickness));
     if (state.shape === 'ellipse') {
       params.set('w', String(state.width));
       params.set('h', String(state.height));
-      params.set('fill', state.fillMode);
     } else {
       params.set('input', state.inputMode);
       params.set('d', String(state.diameter));
       params.set('r', String(state.radius));
-      if (state.shape === 'circle') params.set('fill', state.fillMode);
-      else params.set('solid', state.solidMode);
     }
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, [state]);
 
-  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setState((previous) => ({ ...previous, [key]: value }));
-    trackToolEvent(key === 'shape' ? 'shape_changed' : 'params_changed', { shape: key === 'shape' ? (value as ShapeKind) : state.shape, param: String(key) });
-  }
+  useEffect(() => {
+    setCurrentRowIndex(0);
+    setCompletedRows(new Set());
+  }, [result.title, result.dimensions.width, result.dimensions.height, state.fillMode, state.thickness]);
 
-  function applyPreset(patch: PresetPatch) {
+  useEffect(() => {
+    if (currentRowIndex > Math.max(0, rows.length - 1)) {
+      setCurrentRowIndex(Math.max(0, rows.length - 1));
+    }
+  }, [currentRowIndex, rows.length]);
+
+  function setPatch(patch: Partial<BuilderState>) {
     setState((previous) => ({ ...previous, ...patch }));
-    trackToolEvent('params_changed', { shape: patch.shape || state.shape, param: 'local_preset' });
-  }
-
-  function download(filename: string, content: string, type: string) {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    trackToolEvent('params_changed', { shape: patch.shape || state.shape, param: Object.keys(patch).join(',') });
   }
 
   async function copy(text: string, label: string, eventName: Parameters<typeof trackToolEvent>[0]) {
+    setManualCopy(null);
     try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
       await navigator.clipboard.writeText(text);
       setCopied(label);
       setTimeout(() => setCopied(''), 1600);
       trackToolEvent(eventName, { shape: result.shape });
     } catch {
-      setCopied('Copy failed');
+      setCopied('Manual copy needed');
+      setManualCopy({ label, text });
     }
+  }
+
+  function reset() {
+    setState({
+      shape: 'circle',
+      inputMode: 'diameter',
+      diameter: 31,
+      radius: 15,
+      width: 31,
+      height: 21,
+      fillMode: 'outline',
+      thickness: 1
+    });
+    trackToolEvent('params_changed', { shape: 'circle', param: 'reset' });
+  }
+
+  function updateDiameter(next: number) {
+    const diameter = clampInt(next, 3, 512);
+    setPatch({ diameter, radius: Math.floor(diameter / 2), shape: 'circle' });
+  }
+
+  function updateRadius(next: number) {
+    const radius = clampInt(next, 2, 256);
+    setPatch({ radius, diameter: radius * 2 + 1, shape: 'circle' });
   }
 
   function exportPng() {
@@ -139,67 +198,546 @@ export function ToolShell(props: ToolShellProps) {
     trackToolEvent('download_png_clicked', { shape: result.shape });
   }
 
-  function exportCsv(mode: 'selected' | 'all') {
-    download(safeExportFilename(result, 'csv'), exportBlueprintCsv(result, layerIndex, mode), 'text/csv');
-    trackToolEvent('download_csv_clicked', { shape: result.shape, mode });
-  }
-
-  function exportSvg() {
-    download(safeExportFilename(result, 'svg'), exportBlueprintSvg(result, layerIndex), 'image/svg+xml');
-    trackToolEvent('download_svg_clicked', { shape: result.shape });
-  }
-
-  function printBlueprint(mode: PrintMode = 'current') {
-    setPrintMode(mode);
-    trackToolEvent('print_clicked', { shape: result.shape, mode });
+  function printBlueprint() {
+    trackToolEvent('print_clicked', { shape: result.shape, mode: 'current' });
     requestBrowserPrint();
   }
 
+  function copyRows() {
+    return copy(rowListText(result, 0), 'Row list copied', 'copy_row_list_clicked');
+  }
+
   function copyCurrentRow() {
-    if (!currentRow) return copy('No row selected', 'No row selected', 'copy_row_list_clicked');
-    return copy(`Z ${currentRow.z}: ${segmentText(currentRow)} (${currentRow.blockCount} blocks)`, 'Current row copied', 'copy_row_list_clicked');
+    if (!currentRow) return undefined;
+    return copy(
+      `Z ${currentRow.z}: ${segmentText(currentRow)} (${currentRow.blockCount} blocks)`,
+      'Current row copied',
+      'copy_current_row_clicked'
+    );
   }
 
   function previousRow() {
-    setSelectedRowIndex((index) => Math.max(0, index - 1));
+    setCurrentRowIndex((value) => Math.max(0, value - 1));
+    trackToolEvent('build_row_changed', { shape: result.shape, direction: 'previous' });
   }
 
   function nextRow() {
-    setSelectedRowIndex((index) => Math.min(Math.max(0, currentRows.length - 1), index + 1));
+    setCurrentRowIndex((value) => Math.min(Math.max(0, rows.length - 1), value + 1));
+    trackToolEvent('build_row_changed', { shape: result.shape, direction: 'next' });
   }
 
+  function toggleRowDone() {
+    if (!currentRow) return;
+    setCompletedRows((previous) => {
+      const next = new Set(previous);
+      if (next.has(currentRow.z)) next.delete(currentRow.z);
+      else next.add(currentRow.z);
+      return next;
+    });
+    trackToolEvent('build_row_done_toggled', { shape: result.shape, row: currentRow.z });
+  }
+
+  function toggleBuildMode() {
+    setBuildMode((value) => {
+      const next = !value;
+      trackToolEvent('build_mode_toggled', { shape: result.shape, active: next });
+      return next;
+    });
+  }
+
+  async function fullscreenCanvas() {
+    const ok = await canvasRef.current?.fullscreen();
+    if (!ok) {
+      setCopied('Fullscreen unavailable');
+      setTimeout(() => setCopied(''), 1600);
+    }
+  }
+
+  function copyShareLink() {
+    return copy(window.location.href, 'Share link copied', 'copy_share_url_clicked');
+  }
+
+  const currentSizeLabel =
+    state.shape === 'circle' ? `${result.dimensions.width} block circle` : `${result.dimensions.width} × ${result.dimensions.height} oval`;
+
   return (
-    <section className="tool-shell" aria-label={props.title || 'BlockLayer generator'}>
-      <div className="tool-header">
-        <div>
-          <span className="eyebrow">Interactive blueprint tool</span>
-          <h2>{props.title || 'Generate a block blueprint'}</h2>
-        </div>
-        <ShapeControls state={state} update={update} />
-      </div>
-      {/* Removed duplicate shape tabs to reduce visual noise – ShapeControls already provides shape switching */}
-      <div className="tool-grid">
-        <aside className="controls">
-          <InputPanel>
-            <PresetSelector applyPreset={applyPreset} />
-            <div className="control-group">
-              <DisplayOptions state={state} update={update} />
-              <CircleControls state={state} update={update} />
-              <EllipseControls state={state} update={update} />
-              <SphereControls state={state} update={update} />
-              <DomeControls state={state} update={update} />
+    <section className="builder-shell" aria-label="Minecraft Circle & Oval Blueprint Builder">
+      <div className="workspace-grid">
+        <aside className="build-card build-settings" aria-label="Build settings">
+          <div className="panel-title">Build settings</div>
+          <div className="step-block">
+            <div className="step-heading">
+              <span>1</span>Shape
             </div>
-          </InputPanel>
-          <ResultsPanel result={result} layerIndex={layerIndex} />
+            <div className="segmented-control">
+              <button type="button" className={state.shape === 'circle' ? 'active' : ''} onClick={() => setPatch({ shape: 'circle' })}>
+                ○ Circle
+              </button>
+              <button type="button" className={state.shape === 'ellipse' ? 'active' : ''} onClick={() => setPatch({ shape: 'ellipse' })}>
+                ▭ Oval / Ellipse
+              </button>
+            </div>
+          </div>
+
+          <div className="step-block">
+            <div className="step-heading">
+              <span>2</span>Size
+            </div>
+            {state.shape === 'circle' ? (
+              <>
+                <div className="segmented-control small">
+                  <button
+                    type="button"
+                    className={state.inputMode === 'diameter' ? 'active' : ''}
+                    onClick={() => setPatch({ inputMode: 'diameter' })}
+                  >
+                    Diameter
+                  </button>
+                  <button
+                    type="button"
+                    className={state.inputMode === 'radius' ? 'active' : ''}
+                    onClick={() => setPatch({ inputMode: 'radius' })}
+                  >
+                    Radius
+                  </button>
+                </div>
+                <label className="field-label">{state.inputMode === 'diameter' ? 'Diameter (blocks)' : 'Radius (blocks)'}</label>
+                <div className="number-stepper">
+                  <input
+                    value={state.inputMode === 'diameter' ? state.diameter : state.radius}
+                    min={state.inputMode === 'diameter' ? 3 : 2}
+                    max={state.inputMode === 'diameter' ? 512 : 256}
+                    type="number"
+                    onChange={(event) =>
+                      state.inputMode === 'diameter' ? updateDiameter(Number(event.target.value)) : updateRadius(Number(event.target.value))
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => (state.inputMode === 'diameter' ? updateDiameter(state.diameter - 1) : updateRadius(state.radius - 1))}
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => (state.inputMode === 'diameter' ? updateDiameter(state.diameter + 1) : updateRadius(state.radius + 1))}
+                  >
+                    ＋
+                  </button>
+                </div>
+                <p className="range-note">Range: 3 – 512</p>
+              </>
+            ) : (
+              <div className="size-pair">
+                <label>
+                  <span>Width</span>
+                  <input
+                    type="number"
+                    min={3}
+                    max={512}
+                    value={state.width}
+                    onChange={(event) => setPatch({ width: clampInt(Number(event.target.value), 3, 512), shape: 'ellipse' })}
+                  />
+                </label>
+                <label>
+                  <span>Height</span>
+                  <input
+                    type="number"
+                    min={3}
+                    max={512}
+                    value={state.height}
+                    onChange={(event) => setPatch({ height: clampInt(Number(event.target.value), 3, 512), shape: 'ellipse' })}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+
+          <div className="step-block">
+            <div className="step-heading">
+              <span>3</span>Build type
+            </div>
+            <div className="segmented-control">
+              <button
+                type="button"
+                className={state.fillMode === 'outline' ? 'active' : ''}
+                onClick={() => setPatch({ fillMode: 'outline' })}
+              >
+                Outline
+              </button>
+              <button
+                type="button"
+                className={state.fillMode === 'filled' ? 'active' : ''}
+                onClick={() => setPatch({ fillMode: 'filled' })}
+              >
+                Filled
+              </button>
+            </div>
+          </div>
+
+          <div className="step-block">
+            <div className="step-heading">
+              <span>4</span>Thickness
+            </div>
+            <div className="thickness-row">
+              <input
+                type="range"
+                min={1}
+                max={8}
+                value={state.thickness}
+                onChange={(event) => setPatch({ thickness: clampInt(Number(event.target.value), 1, 8) })}
+              />
+              <input
+                className="thickness-number"
+                type="number"
+                min={1}
+                max={8}
+                value={state.thickness}
+                onChange={(event) => setPatch({ thickness: clampInt(Number(event.target.value), 1, 8) })}
+              />
+            </div>
+            <p className="range-note">Range: 1 – 8</p>
+          </div>
+
+          <div className="action-stack">
+            <button
+              type="button"
+              className="primary-action"
+              onClick={() => {
+                canvasRef.current?.fitToScreen();
+                trackToolEvent('generate_success', {
+                  shape: result.shape,
+                  totalBlocks: result.totalBlocks,
+                  warnings: result.warnings.length
+                });
+              }}
+            >
+              ⚡ Update & Fit Blueprint
+            </button>
+            <button type="button" className="secondary-action" onClick={reset}>
+              ↻ Reset
+            </button>
+          </div>
         </aside>
-        <div className="canvas-column">
-          <LayerSlider result={layered} layerIndex={layerIndex} setLayerIndex={setLayerIndex} />
-          <CoordinateReadout result={result} layerIndex={layerIndex} />
-          <BlueprintCanvas ref={canvasRef} result={result} selectedLayerIndex={layerIndex} showCoordinates={state.showCoordinates} showSegments={state.showSegments} showGhost={state.showGhost} highContrast={state.highContrast} highlightedRowZ={currentRow?.z ?? null} />
-          <WarningPanel warnings={result.warnings} />
-          <ExportPanel layered={layered} copied={copied} printStartLayer={printStartLayer} printEndLayer={printEndLayer} setPrintStartLayer={setPrintStartLayer} setPrintEndLayer={setPrintEndLayer} exportPng={exportPng} exportSvg={exportSvg} exportCsv={exportCsv} printBlueprint={printBlueprint} copyRowList={() => copy(rowListText(result, layerIndex), 'Row list copied', 'copy_row_list_clicked')} copyLayerSummary={() => copy(layerSummaryText(result), 'Layer summary copied', 'copy_layer_summary_clicked')} copyShareLink={() => copy(window.location.href, 'Share URL copied', 'copy_share_url_clicked')} copySummary={() => copy(summaryText(result, layerIndex), 'Summary copied', 'copy_summary_clicked')} copyCurrentRow={copyCurrentRow} previousRow={previousRow} nextRow={nextRow} />
-          <BlueprintTables result={result} layerIndex={layerIndex} printMode={printMode} printStartLayer={printStartLayer} printEndLayer={printEndLayer} selectedRowIndex={selectedRowIndex} setSelectedRowIndex={setSelectedRowIndex} />
-        </div>
+
+        <section className="blueprint-workspace" aria-label="Blueprint canvas and row segments">
+          <div className="workspace-toolbar">
+            <div className="view-options">
+              <strong>View options:</strong>
+              <button type="button" className={showCenter ? 'active' : ''} onClick={() => setShowCenter((v) => !v)}>
+                ▦ Center
+              </button>
+              <button type="button" className={showAxis ? 'active' : ''} onClick={() => setShowAxis((v) => !v)}>
+                ━ Axis
+              </button>
+              <button type="button" className={showCoordinates ? 'active' : ''} onClick={() => setShowCoordinates((v) => !v)}>
+                ▦ Coordinates
+              </button>
+              <button type="button" className={showRowLabels ? 'active' : ''} onClick={() => setShowRowLabels((v) => !v)}>
+                12 Row labels
+              </button>
+            </div>
+            <div className="zoom-controls">
+              <button type="button" className={buildMode ? 'build-mode-toggle active' : 'build-mode-toggle'} onClick={toggleBuildMode}>
+                Build Mode
+              </button>
+              <button type="button" onClick={() => canvasRef.current?.zoomOut()}>
+                −
+              </button>
+              <span>{zoomPercent}%</span>
+              <button type="button" onClick={() => canvasRef.current?.zoomIn()}>
+                ＋
+              </button>
+              <button type="button" onClick={() => canvasRef.current?.fitToScreen()}>
+                Fit
+              </button>
+              <button type="button" className="icon-button" aria-label="Fullscreen" onClick={fullscreenCanvas}>
+                ⛶
+              </button>
+            </div>
+          </div>
+
+          <BlueprintCanvas
+            ref={canvasRef}
+            result={result}
+            selectedLayerIndex={0}
+            showCoordinates={showCoordinates}
+            showSegments={showRowLabels}
+            showCenter={showCenter}
+            showAxis={showAxis}
+            showGhost={false}
+            highContrast={false}
+            hideToolbar
+            highlightedRowZ={buildMode ? (currentRow?.z ?? null) : null}
+            onZoomChange={(percent) => setZoomPercent(percent)}
+          />
+
+          <div className="canvas-caption">
+            <span>Center</span>
+            <span>Axis (X/Z)</span>
+            <span>Each grid = 1 block</span>
+            <strong>Diameter: {result.dimensions.width} blocks</strong>
+            {state.shape === 'circle' && <strong>Radius: {Math.floor(result.dimensions.width / 2)} blocks</strong>}
+          </div>
+
+          {buildMode && currentRow && (
+            <section ref={companionRef} className="companion-mode-card" aria-label="Companion build mode" aria-live="polite">
+              <div className="companion-kicker">Companion Mode</div>
+              <div className="current-row-copy">
+                <span>Current row</span>
+                <strong>Z = {currentRow.z}</strong>
+                <em>{segmentText(currentRow)}</em>
+                <small>
+                  {currentRow.blockCount} blocks · {currentRowIndex + 1} / {rows.length} rows · {completedCount} done
+                </small>
+              </div>
+              <div className="build-progress" aria-label="Build progress">
+                <span style={{ width: `${rows.length ? Math.round((completedCount / rows.length) * 100) : 0}%` }} />
+              </div>
+              <div className="companion-actions">
+                <button type="button" onClick={previousRow} disabled={currentRowIndex === 0}>
+                  Previous row
+                </button>
+                <button type="button" className={completedRows.has(currentRow.z) ? 'done' : ''} onClick={toggleRowDone}>
+                  {completedRows.has(currentRow.z) ? 'Undo done' : 'Mark done'}
+                </button>
+                <button type="button" onClick={nextRow} disabled={currentRowIndex >= rows.length - 1}>
+                  Next row
+                </button>
+                <button type="button" onClick={copyCurrentRow}>
+                  Copy this row
+                </button>
+              </div>
+            </section>
+          )}
+
+          <div className="lower-grid">
+            <section className="data-card row-table-card">
+              <div className="card-header">
+                <h3>Row Segments (top to bottom)</h3>
+                <button type="button" onClick={copyRows}>
+                  ⌘ Copy all rows
+                </button>
+              </div>
+              <div className="row-table-scroll">
+                <table className="row-table">
+                  <thead>
+                    <tr>
+                      <th>Z (row)</th>
+                      <th>X start</th>
+                      <th>X end</th>
+                      <th>Length</th>
+                      <th>Blocks</th>
+                      <th>Visual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, rowIndex) => {
+                      const first = row.segments[0];
+                      const last = row.segments[row.segments.length - 1];
+                      const selectable = buildMode;
+                      return (
+                        <tr
+                          key={row.z}
+                          className={`${buildMode && currentRow?.z === row.z ? 'active-row' : ''} ${completedRows.has(row.z) ? 'completed-row' : ''}`.trim()}
+                          role={selectable ? 'button' : undefined}
+                          tabIndex={selectable ? 0 : undefined}
+                          aria-current={buildMode && currentRow?.z === row.z ? 'step' : undefined}
+                          onClick={() => selectable && setCurrentRowIndex(rowIndex)}
+                          onKeyDown={(event) => {
+                            if (!selectable) return;
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              setCurrentRowIndex(rowIndex);
+                            }
+                          }}
+                        >
+                          <td>
+                            {completedRows.has(row.z) ? '✓ ' : ''}
+                            {row.z}
+                          </td>
+                          <td>{first?.startX ?? '—'}</td>
+                          <td>{last?.endX ?? '—'}</td>
+                          <td>{row.segments.map((segment) => segment.length).join(' + ')}</td>
+                          <td>{row.blockCount}</td>
+                          <td>
+                            <span className="mini-blocks" style={{ ['--blocks' as string]: Math.min(24, row.blockCount) }}>
+                              {Array.from({ length: Math.min(24, row.blockCount) }, (_, i) => (
+                                <i key={i} />
+                              ))}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="data-card center-guide-card">
+              <h3>Odd vs Even Center</h3>
+              <div className="center-explain-row">
+                <div className="mini-grid odd">
+                  <b />
+                </div>
+                <div>
+                  <strong>Odd diameter</strong> <span>(like 31)</span>
+                  <p>Has a single center block. Perfect symmetry around center.</p>
+                </div>
+              </div>
+              <div className="center-explain-row">
+                <div className="mini-grid even">
+                  <b />
+                </div>
+                <div>
+                  <strong>Even diameter</strong> <span>(like 32)</span>
+                  <p>Center is between four blocks. Mark a 2×2 area as center.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <aside className="result-rail" aria-label="Result summary and exports">
+          <section className="result-card center-type-card">
+            <div className="card-kicker">Center type</div>
+            <div className="center-type-content">
+              <div className="mini-grid big">
+                <b />
+              </div>
+              <div>
+                <h3>{centerTitle(result)}</h3>
+                <p>({centerSubtitle(result)})</p>
+              </div>
+            </div>
+            <div className="start-card">
+              <strong>Start here:</strong>
+              <br />
+              Place the center block, then mark the X/Z axis.
+            </div>
+          </section>
+
+          <section className="result-card bounds-card">
+            <div className="card-kicker">Bounds</div>
+            <p>
+              <strong>{boundsText(result)}</strong>
+            </p>
+            <span>{currentSizeLabel}</span>
+          </section>
+
+          <section className="result-card block-count-card">
+            <div className="card-kicker">Block count</div>
+            <dl>
+              <dt>{state.fillMode === 'outline' ? 'Outline blocks' : 'Filled blocks'}</dt>
+              <dd>{result.totalBlocks}</dd>
+              {'outlineBlocks' in result && (
+                <>
+                  <dt>Blocks if filled</dt>
+                  <dd>{state.fillMode === 'filled' ? result.totalBlocks : result.filledBlocks}</dd>
+                </>
+              )}
+              <dt>Stacks of 64</dt>
+              <dd>{stacksText(result)}</dd>
+            </dl>
+          </section>
+
+          <section className="result-card export-card">
+            <div className="card-kicker">Export & share</div>
+            <button type="button" onClick={copyRows}>
+              ▣ Copy row list
+            </button>
+            <button type="button" onClick={exportPng}>
+              ⇩ Download PNG
+            </button>
+            <button type="button" onClick={printBlueprint}>
+              ▤ Print blueprint
+            </button>
+            <button type="button" className="share-button" onClick={copyShareLink}>
+              🔗 Copy share link
+            </button>
+            {copied && (
+              <p className="copy-status" role="status">
+                {copied}
+              </p>
+            )}
+            {manualCopy && (
+              <div className="manual-copy-box" role="dialog" aria-label={`${manualCopy.label} manual fallback`}>
+                <p>Clipboard permission was blocked. Select and copy manually:</p>
+                <textarea ref={manualCopyRef} readOnly value={manualCopy.text} onFocus={(event) => event.currentTarget.select()} />
+                <button type="button" onClick={() => setManualCopy(null)}>
+                  Close
+                </button>
+              </div>
+            )}
+          </section>
+
+          <section className="result-card build-mode-card">
+            <div className="card-kicker">Build while playing</div>
+            <p>Use Companion Mode on a second screen or a narrow browser beside Minecraft.</p>
+            <button type="button" className={buildMode ? 'share-button' : ''} onClick={toggleBuildMode}>
+              {buildMode ? 'Exit Companion Mode' : 'Open Companion Mode'}
+            </button>
+          </section>
+        </aside>
+      </div>
+
+      <div className="below-workspace">
+        <section className="info-card how-to" id="how-to-use">
+          <h3>How to use</h3>
+          <ol>
+            <li>Choose Circle or Oval.</li>
+            <li>Enter diameter, radius, or width × height.</li>
+            <li>Choose outline or filled and set thickness.</li>
+            <li>View the blueprint and row segments.</li>
+            <li>Open Companion Mode when building beside the game.</li>
+            <li>Use Previous / Next row and Mark done as you place blocks.</li>
+            <li>Copy the row list or export the image.</li>
+          </ol>
+        </section>
+
+        <section className="info-card common-sizes">
+          <h3>Common odds (diameter)</h3>
+          <div className="size-chips">
+            {oddDiameters.map((size) => (
+              <button
+                type="button"
+                key={size}
+                className={state.shape === 'circle' && state.diameter === size ? 'active' : ''}
+                onClick={() => updateDiameter(size)}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+          <p>Odd diameters have a single center block.</p>
+        </section>
+
+        <section className="info-card build-tips">
+          <h3>Build tips</h3>
+          <ul>
+            <li>Place the center block first.</li>
+            <li>Build the north, south, east and west axis.</li>
+            <li>Then build each row outward.</li>
+            <li>Use row segments to stay accurate.</li>
+          </ul>
+        </section>
+
+        <section className="info-card faq-card">
+          <h3>FAQ</h3>
+          <details>
+            <summary>Why does my circle look different in Minecraft?</summary>
+            <p>This tool uses block-center approximation. Other tools may include edge blocks differently.</p>
+          </details>
+          <details>
+            <summary>What is the difference between odd and even diameters?</summary>
+            <p>Odd diameters have one center block. Even diameters are centered between four blocks.</p>
+          </details>
+          <details>
+            <summary>How do I build a perfect circle in Minecraft?</summary>
+            <p>Mark the center and axis first, then follow the row segment list.</p>
+          </details>
+        </section>
       </div>
     </section>
   );

@@ -1,10 +1,19 @@
-import { AliasToolPage } from '@/components/content/AliasToolPage';
+import type { Metadata } from 'next';
+import { JsonLd } from '@/components/content/JsonLd';
+import { ToolShell } from '@/components/tool/ToolShell';
+import { softwareApplicationSchema } from '@/lib/seo/schema';
 
-export const metadata = {
-  title: 'Minecraft Circle Generator',
-  description: 'Generate printable Minecraft-style circle blueprints with row tables and exports.'
+export const metadata: Metadata = {
+  title: 'Minecraft Circle Blueprint Builder',
+  description: 'Build Minecraft-style circle blueprints with center guides, row segments, block counts, PNG export, print output, and share links.',
+  alternates: { canonical: '/minecraft-circle-generator' }
 };
 
 export default function Page() {
-  return <AliasToolPage path="/minecraft-circle-generator" eyebrow="Tool alias" heading="Minecraft Circle Generator" description="Generate printable Minecraft-style circle blueprints with row tables and exports." shape="circle" initialDiameter={31} />;
+  return (
+    <main id="main" className="builder-page">
+      <JsonLd data={softwareApplicationSchema({ path: '/minecraft-circle-generator', shape: 'circle', title: 'Minecraft Circle Blueprint Builder', heading: 'Minecraft Circle Blueprint Builder', description: metadata.description as string })} />
+      <ToolShell title="Minecraft Circle Blueprint Builder" initialShape="circle" />
+    </main>
+  );
 }

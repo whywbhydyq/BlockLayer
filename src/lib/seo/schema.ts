@@ -13,7 +13,7 @@ export function websiteSchema(): JsonObject {
     '@type': 'WebSite',
     name: SITE_NAME,
     url: siteUrl(),
-    description: 'Printable block-by-block blueprint generator for Minecraft-style circles, ellipses, spheres, domes, and block counts.',
+    description: 'Printable block-by-block blueprint builder for Minecraft-style circles and ovals with row segments, center guides, block counts, and exports.',
     inLanguage: 'en'
   };
 }
@@ -26,7 +26,7 @@ export function softwareApplicationSchema(page?: ToolPageConfig | PresetConfig):
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web browser',
     url: page ? absolute(page.path) : DEFAULT_SITE_URL,
-    description: page?.description || 'Generate printable block blueprints with pan, zoom, layer sliders, block counts, PNG, SVG, CSV, and print export.',
+    description: page?.description || 'Generate printable circle and oval block blueprints with pan, zoom, row labels, block counts, PNG export, share links, and print output.',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     isAccessibleForFree: true
   };

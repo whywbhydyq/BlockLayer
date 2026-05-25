@@ -18,12 +18,12 @@ export function generateCircle(params: CircleParams): TwoDimensionalResult {
       const distance = Math.sqrt(dx * dx + dz * dz);
       const inside = distance <= radius;
       const inOutline = inside && distance >= Math.max(0, radius - thickness);
-      const filled = params.fillMode === 'filled' ? inside : inOutline;
-      if (filled) {
+      if (inside) filledBlocks += 1;
+      if (inOutline) outlineBlocks += 1;
+      const visible = params.fillMode === 'filled' ? inside : inOutline;
+      if (visible) {
         const role = inOutline ? 'outline' : 'fill';
         cells.push({ x, z, filled: true, role });
-        if (inOutline) outlineBlocks += 1;
-        if (inside) filledBlocks += 1;
       }
     }
   }
@@ -43,6 +43,6 @@ export function generateCircle(params: CircleParams): TwoDimensionalResult {
     rows,
     bounds: boundsFromSizes(diameter, diameter),
     outlineBlocks,
-    filledBlocks: params.fillMode === 'filled' ? filledBlocks : outlineBlocks
+    filledBlocks
   };
 }

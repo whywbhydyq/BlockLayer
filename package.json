@@ -2,7 +2,7 @@
   "name": "blocklayer",
   "version": "1.0.0",
   "private": true,
-  "description": "BlockLayer is a printable Minecraft-style circle, ellipse, sphere, dome, and block count blueprint generator.",
+  "description": "BlockLayer is a local-first Minecraft circle and oval blueprint builder with row segments, center guides, block counts, PNG export, print output, and share links.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -26,7 +26,8 @@
     "@types/react-dom": "^18.3.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
-    "typescript": "^5.5.0",
-    "prettier": "^3.3.3"
+    "postcss": "^8.5.10",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.0"
   }
 }

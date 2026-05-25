@@ -24,12 +24,12 @@ export function generateEllipse(params: EllipseParams): TwoDimensionalResult {
       const inner = Math.sqrt((cellCenter(x, width) / innerRx) ** 2 + (cellCenter(z, height) / innerRz) ** 2);
       const inside = normalized <= 1;
       const inOutline = inside && inner >= 1;
-      const filled = params.fillMode === 'filled' ? inside : inOutline;
-      if (filled) {
+      if (inside) filledBlocks += 1;
+      if (inOutline) outlineBlocks += 1;
+      const visible = params.fillMode === 'filled' ? inside : inOutline;
+      if (visible) {
         const role = inOutline ? 'outline' : 'fill';
         cells.push({ x, z, filled: true, role });
-        if (inOutline) outlineBlocks += 1;
-        if (inside) filledBlocks += 1;
       }
     }
   }
@@ -48,6 +48,6 @@ export function generateEllipse(params: EllipseParams): TwoDimensionalResult {
     rows: rowsFromCells(cells),
     bounds: boundsFromSizes(width, height),
     outlineBlocks,
-    filledBlocks: params.fillMode === 'filled' ? filledBlocks : outlineBlocks
+    filledBlocks
   };
 }

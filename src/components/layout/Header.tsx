@@ -1,5 +1,20 @@
 import { TrackedLink } from '@/components/content/TrackedLink';
 
 export function Header() {
-  return <header className="site-header"><TrackedLink className="brand" href="/" eventName="related_tool_clicked" label="Home">BlockLayer</TrackedLink><nav aria-label="Primary navigation"><TrackedLink href="/tools/minecraft-circle-generator" label="Circle">Circle</TrackedLink><TrackedLink href="/tools/minecraft-ellipse-generator" label="Ellipse">Ellipse</TrackedLink><TrackedLink href="/tools/minecraft-sphere-generator" label="Sphere">Sphere</TrackedLink><TrackedLink href="/tools/minecraft-dome-generator" label="Dome">Dome</TrackedLink><TrackedLink href="/presets/minecraft-circle-generator-32" label="Presets">Presets</TrackedLink><TrackedLink href="/guides/how-to-build-a-sphere-layer-by-layer" eventName="related_guide_clicked" label="Guides">Guides</TrackedLink></nav></header>;
+  return (
+    <header className="site-header app-header">
+      <TrackedLink className="brand app-brand" href="/" eventName="related_tool_clicked" label="Home">
+        <span className="brand-mark" aria-hidden="true">◆</span>
+        <span>
+          <strong>Minecraft Circle & Oval Blueprint Builder</strong>
+          <em>Build block-by-block blueprints with row segments, center guides, and accurate block counts.</em>
+        </span>
+      </TrackedLink>
+      <nav aria-label="Primary navigation" className="app-nav">
+        <TrackedLink href="/minecraft-circle-generator" label="Circle">Circle</TrackedLink>
+        <TrackedLink href="/minecraft-oval-generator" label="Oval">Oval</TrackedLink>
+        <TrackedLink href="/#how-to-use" eventName="related_guide_clicked" label="How to use">ⓘ How to use</TrackedLink>
+      </nav>
+    </header>
+  );
 }
