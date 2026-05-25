@@ -1,8 +1,0 @@
-node_modules
-.next
-out
-.vercel
-.audit-dist
-.env*.local
-.DS_Store
-*.log
