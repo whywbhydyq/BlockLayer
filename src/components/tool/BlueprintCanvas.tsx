@@ -49,9 +49,9 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
   const lastPinchDistance = useRef<number | null>(null);
   const baseScale = useRef<number | null>(null);
   const lastTracked = useRef<Record<string, number>>({});
+  const resizeFrame = useRef<number | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const data = useMemo(() => view(result, selectedLayerIndex), [result, selectedLayerIndex]);
 
   const notifyZoom = useCallback((nextScale: number) => {
@@ -117,6 +117,22 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
     setScale(viewport.scale);
     setOffset(viewport.offset);
   }, [data.bounds, result.shape]);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (resizeFrame.current !== null) window.cancelAnimationFrame(resizeFrame.current);
+      resizeFrame.current = window.requestAnimationFrame(() => {
+        fitToScreen();
+      });
+    });
+    observer.observe(wrap);
+    return () => {
+      observer.disconnect();
+      if (resizeFrame.current !== null) window.cancelAnimationFrame(resizeFrame.current);
+    };
+  }, [fitToScreen]);
 
   const zoomIn = useCallback(() => {
     setScale((value) => {
@@ -245,25 +261,15 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
           ref={canvasRef}
           tabIndex={0}
           role="img"
-          aria-label={`${result.title} blueprint canvas. Double-click or double-tap Fit to screen; pinch zoom is supported on touch devices.`}
+          aria-label={`${result.title} blueprint canvas. The blueprint is fixed in place; use Fit to recenter and mouse wheel or pinch to zoom.`}
           onWheel={onWheel}
           onDoubleClick={fitToScreen}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={() => { lastPinchDistance.current = null; }}
           onPointerDown={(event) => {
-            if (event.pointerType === 'touch') return;
-            setDrag({ x: event.clientX, y: event.clientY });
+            if (event.pointerType !== 'touch') event.preventDefault();
           }}
-          onPointerMove={(event) => {
-            if (event.pointerType === 'touch' || !drag) return;
-            setOffset((previous) => ({ x: previous.x + event.clientX - drag.x, y: previous.y + event.clientY - drag.y }));
-            trackThrottled('pan_used', { shape: result.shape });
-            setDrag({ x: event.clientX, y: event.clientY });
-          }}
-          onPointerUp={() => setDrag(null)}
-          onPointerLeave={() => setDrag(null)}
-          onPointerCancel={() => setDrag(null)}
         />
       </div>
     </div>

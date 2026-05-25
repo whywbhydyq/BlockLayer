@@ -66,7 +66,7 @@ function stacksText(result: TwoDimensionalResult) {
   return `${result.stacks.fullStacks} stacks + ${result.stacks.remainder} blocks`;
 }
 
-const oddDiameters = [15, 19, 23, 31, 33, 39, 51];
+const commonDiameters = [16, 19, 23, 31, 33, 39, 51];
 
 export function ToolShell(props: ToolShellProps) {
   const [state, setState] = useState<BuilderState>(() => normalizeInitialState(props));
@@ -173,10 +173,10 @@ export function ToolShell(props: ToolShellProps) {
     setState({
       shape: 'circle',
       inputMode: 'diameter',
-      diameter: 31,
-      radius: 15,
-      width: 31,
-      height: 21,
+      diameter: 16,
+      radius: 8,
+      width: 16,
+      height: 16,
       fillMode: 'outline',
       thickness: 1
     });
@@ -697,9 +697,9 @@ export function ToolShell(props: ToolShellProps) {
         </section>
 
         <section className="info-card common-sizes">
-          <h3>Common odds (diameter)</h3>
+          <h3>Common diameters</h3>
           <div className="size-chips">
-            {oddDiameters.map((size) => (
+            {commonDiameters.map((size) => (
               <button
                 type="button"
                 key={size}
@@ -710,7 +710,7 @@ export function ToolShell(props: ToolShellProps) {
               </button>
             ))}
           </div>
-          <p>Odd diameters have a single center block.</p>
+          <p>Even diameters center between blocks; odd diameters use one center block.</p>
         </section>
 
         <section className="info-card build-tips">
