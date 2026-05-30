@@ -11,16 +11,16 @@ export function DomeControls({ state, update }: { state: FormState; update: Upda
     <>
       <div className="control-row">
         <label>Input mode<select value={state.inputMode} onChange={(event) => update('inputMode', event.target.value as InputMode)}><option value="diameter">Diameter</option><option value="radius">Radius</option></select></label>
-        {state.inputMode === 'diameter' ? <label>Diameter blocks<input type="number" min={1} max={257} value={state.diameter} onChange={(event) => update('diameter', parseNumber(event.target.value, 31))} /></label> : <label>Radius blocks<input type="number" min={1} max={128} value={state.radius} onChange={(event) => update('radius', parseNumber(event.target.value, 15))} /></label>}
+        {state.inputMode === 'diameter' ? <label>Diameter blocks<input type="number" onWheel={(event) => event.currentTarget.blur()} min={1} max={257} value={state.diameter} onChange={(event) => update('diameter', parseNumber(event.target.value, 31))} /></label> : <label>Radius blocks<input type="number" onWheel={(event) => event.currentTarget.blur()} min={1} max={128} value={state.radius} onChange={(event) => update('radius', parseNumber(event.target.value, 15))} /></label>}
       </div>
       <div className="control-row">
         <label>Mode<select value={state.solidMode} onChange={(event) => update('solidMode', event.target.value as SolidMode)}><option value="hollow">Hollow shell</option><option value="solid">Solid</option></select></label>
-        <label>Shell thickness<input type="number" min={1} max={4} value={state.shellThickness} onChange={(event) => update('shellThickness', parseNumber(event.target.value, 1))} /></label>
+        <label>Shell thickness<input type="number" onWheel={(event) => event.currentTarget.blur()} min={1} max={4} value={state.shellThickness} onChange={(event) => update('shellThickness', parseNumber(event.target.value, 1))} /></label>
         <label>Build direction<select value={state.buildDirection} onChange={(event) => update('buildDirection', event.target.value as BuildDirection)}><option value="bottom-up">Bottom-up</option><option value="top-down">Top-down</option></select></label>
       </div>
       <div className="control-row">
         <label>Dome half<select value={state.domeHalf} onChange={(event) => update('domeHalf', event.target.value as DomeHalf)}><option value="top">Top half</option><option value="bottom">Bottom half</option></select></label>
-        <label>Cap height layers<input type="number" min={1} max={129} value={state.capHeight} onChange={(event) => update('capHeight', parseNumber(event.target.value, 16))} /></label>
+        <label>Cap height layers<input type="number" onWheel={(event) => event.currentTarget.blur()} min={1} max={129} value={state.capHeight} onChange={(event) => update('capHeight', parseNumber(event.target.value, 16))} /></label>
       </div>
     </>
   );

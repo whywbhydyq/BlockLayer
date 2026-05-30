@@ -172,7 +172,11 @@ for (const needle of [
   'useBlueprintResult',
   "import('@/lib/export/exportCsv')",
   "import('@/lib/export/exportSvg')",
-  "import('@/lib/export/exportPrint')"
+  "import('@/lib/export/exportPrint')",
+  'preventNumberWheelChange',
+  'urlUpdateTimeout',
+  'window.clearTimeout(urlUpdateTimeout.current)',
+  'aria-modal="true"'
 ]) {
   if (!blueprintWorkspace.includes(needle)) failures.push(`BlueprintWorkspace missing feature: ${needle}`);
 }
@@ -233,16 +237,24 @@ for (const needle of [
   'exportFullBlueprint',
   "event.pointerType === 'touch'",
   'pinchActive',
-  'Drag with one finger',
+  'horizontal one-finger drags',
   'trackThrottled',
   'onPointerCancel',
   'onPointerMove',
   'pan_used',
   'onZoomChange',
+  'event.ctrlKey || event.metaKey',
+  'modified-wheel',
+  'Ctrl or Command plus mouse wheel',
+  'vertical swipes scroll the page',
+  'touchPanLock',
+  'ArrowUp',
+  'onKeyDown={onCanvasKeyDown}',
   "import('@/lib/export/exportPng')"
 ]) {
   if (!canvas.includes(needle)) failures.push(`BlueprintCanvas missing interaction fix: ${needle}`);
 }
+if (canvas.includes('onDoubleClick={fitToScreen}')) failures.push('Canvas must not recenter unexpectedly on double click; use the Fit button or keyboard shortcut');
 
 const renderer = read('src/lib/render/canvasRenderer.ts');
 for (const needle of ['showCenter', 'showAxis', 'showSegments', 'labelBackground', 'highlightedRowZ', 'axisPixel', 'isCentralColumn']) {
@@ -275,6 +287,16 @@ if (css.includes('.content-card,.ad-slot,.hero,.disclosure-box,.breadcrumbs{disp
   failures.push('Content pages must not be globally hidden by builder CSS');
 if (css.includes('@media print{.builder-intro,.result-strip,.content-card,.guide-card,.preset-detail-card{display:none!important}}'))
   failures.push('Remove unscoped print override for builder/content visibility');
+if (!css.includes('touch-action: pan-y')) failures.push('Canvas wrapper should allow vertical page scrolling on touch devices');
+if (css.includes('touch-action: none')) failures.push('Canvas wrapper must not globally block touch scrolling');
+
+
+for (const legacyControl of ['CircleControls.tsx', 'EllipseControls.tsx', 'SphereControls.tsx', 'DomeControls.tsx', 'PrintPanel.tsx']) {
+  const legacySource = read(`src/components/tool/${legacyControl}`);
+  if (legacySource.includes('type="number"') && !legacySource.includes('onWheel={(event) => event.currentTarget.blur()}')) {
+    failures.push(`${legacyControl} should guard number inputs against wheel changes before migration`);
+  }
+}
 
 const exportPng = read('src/lib/export/exportPng.ts');
 for (const needle of ['document.body.appendChild(anchor)', 'window.setTimeout(() => URL.revokeObjectURL(url), 1000)']) {
@@ -399,7 +421,7 @@ for (const legacyComponent of [
 }
 
 const readme = read('README.md');
-for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest performance boundary repair', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'src/lib/content/toolContent.ts', 'BlueprintWorkspace.tsx', 'ToolContentSection.tsx']) {
+for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest performance boundary repair', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'Latest interaction safety repair', 'src/lib/content/toolContent.ts', 'BlueprintWorkspace.tsx', 'ToolContentSection.tsx']) {
   if (!readme.includes(needle)) failures.push(`README missing current source-of-truth note: ${needle}`);
 }
 for (const archivedReport of [

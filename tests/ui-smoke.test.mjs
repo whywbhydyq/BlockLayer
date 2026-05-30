@@ -143,7 +143,10 @@ for (const needle of [
   'useBlueprintResult',
   "import('@/lib/export/exportCsv')",
   "import('@/lib/export/exportSvg')",
-  "import('@/lib/export/exportPrint')"
+  "import('@/lib/export/exportPrint')",
+  'preventNumberWheelChange',
+  'urlUpdateTimeout',
+  'aria-modal="true"'
 ]) {
   assert(blueprintWorkspace.includes(needle), `BlueprintWorkspace should include ${needle}`);
 }
@@ -165,15 +168,23 @@ for (const needle of [
   'exportFullBlueprint',
   "event.pointerType === 'touch'",
   'pinchActive',
-  'Drag with one finger',
+  'horizontal one-finger drags',
   'trackThrottled',
   'onPointerCancel',
   'onPointerMove',
   'pan_used',
+  'event.ctrlKey || event.metaKey',
+  'modified-wheel',
+  'Ctrl or Command plus mouse wheel',
+  'vertical swipes scroll the page',
+  'touchPanLock',
+  'ArrowUp',
+  'onKeyDown={onCanvasKeyDown}',
   "import('@/lib/export/exportPng')"
 ]) {
   assert(canvas.includes(needle), `BlueprintCanvas should include ${needle}`);
 }
+assert(!canvas.includes('onDoubleClick={fitToScreen}'), 'canvas should not recenter unexpectedly on double click');
 
 const renderer = read('src/lib/render/canvasRenderer.ts');
 for (const needle of ['showCenter', 'showAxis', 'showSegments', 'labelBackground', 'highlightedRowZ', 'axisPixel', 'isCentralColumn']) {
@@ -241,6 +252,8 @@ assert(
   'Content pages must not be globally hidden'
 );
 assert(css.includes('.builder-page .content-card'), 'Builder-only print/content hiding should be scoped to .builder-page');
+assert(css.includes('touch-action: pan-y'), 'Canvas should allow vertical page scrolling on touch devices');
+assert(!css.includes('touch-action: none'), 'Canvas should not globally block touch scrolling');
 
 const legacyDoc = read('src/components/tool/LEGACY_COMPONENTS.md');
 for (const needle of ['`BlueprintWorkspace.tsx` is the active interactive client workspace', 'retained as migration/reference', 'Do not create a second parallel builder path']) {
@@ -251,7 +264,7 @@ for (const legacyComponent of ['CircleControls.tsx', 'EllipseControls.tsx', 'Sph
 }
 
 const readme = read('README.md');
-for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'src/lib/content/toolContent.ts']) {
+for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'Latest interaction safety repair', 'src/lib/content/toolContent.ts']) {
   assert(readme.includes(needle), `README should include ${needle}`);
 }
 for (const archivedReport of ['docs/archive/IMPLEMENTATION_AUDIT.md', 'docs/archive/FINAL_PLAN_COMPLETION_REPORT.md', 'docs/archive/USER_NEEDS_AND_LAYOUT_AUDIT.md', 'docs/archive/README.md']) {

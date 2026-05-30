@@ -50,6 +50,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
   const baseScale = useRef<number | null>(null);
   const lastTracked = useRef<Record<string, number>>({});
   const resizeFrame = useRef<number | null>(null);
+  const touchPanLock = useRef<'pan' | 'scroll' | null>(null);
   const panPointerId = useRef<number | null>(null);
   const lastPanPoint = useRef<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(1);
@@ -218,6 +219,9 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
   }), [exportFullBlueprint, fitToScreen, fullscreen, resetView, zoomIn, zoomOut]);
 
   function onWheel(event: React.WheelEvent<HTMLCanvasElement>) {
+    const intentionalZoom = event.ctrlKey || event.metaKey;
+    if (!intentionalZoom) return;
+
     event.preventDefault();
     const factor = event.deltaY < 0 ? 1.12 : 0.88;
     setScale((value) => {
@@ -225,7 +229,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
       notifyZoom(next);
       return next;
     });
-    trackThrottled('zoom_used', { shape: result.shape, direction: event.deltaY < 0 ? 'in' : 'out' });
+    trackThrottled('zoom_used', { shape: result.shape, direction: event.deltaY < 0 ? 'in' : 'out', input: 'modified-wheel' });
   }
 
   function onTouchStart(event: React.TouchEvent<HTMLCanvasElement>) {
@@ -256,6 +260,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
     if (event.touches.length >= 2) return;
     lastPinchDistance.current = null;
     pinchActive.current = false;
+    touchPanLock.current = null;
   }
 
   function stopPan(event?: React.PointerEvent<HTMLCanvasElement>) {
@@ -265,27 +270,72 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
     }
     panPointerId.current = null;
     lastPanPoint.current = null;
+    touchPanLock.current = null;
   }
 
   function onPointerDown(event: React.PointerEvent<HTMLCanvasElement>) {
     const isTouchPointer = event.pointerType === 'touch';
-    if (isTouchPointer && pinchActive.current) return;
-    event.preventDefault();
+    const isPrimaryButton = event.pointerType === 'touch' || event.button === 0;
+    if (!isPrimaryButton || (isTouchPointer && pinchActive.current)) return;
+    if (!isTouchPointer) event.preventDefault();
     panPointerId.current = event.pointerId;
     lastPanPoint.current = { x: event.clientX, y: event.clientY };
+    touchPanLock.current = null;
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLCanvasElement>) {
     if (event.pointerType === 'touch' && pinchActive.current) return;
     if (panPointerId.current !== event.pointerId || !lastPanPoint.current) return;
-    event.preventDefault();
     const dx = event.clientX - lastPanPoint.current.x;
     const dy = event.clientY - lastPanPoint.current.y;
     if (!dx && !dy) return;
+
+    if (event.pointerType === 'touch') {
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      if (!touchPanLock.current && Math.max(absX, absY) < 6) return;
+      if (!touchPanLock.current) touchPanLock.current = absY > absX ? 'scroll' : 'pan';
+      if (touchPanLock.current === 'scroll') {
+        stopPan(event);
+        return;
+      }
+    }
+
+    event.preventDefault();
     lastPanPoint.current = { x: event.clientX, y: event.clientY };
     setOffset((value) => ({ x: value.x + dx, y: value.y + dy }));
     trackThrottled('pan_used', { shape: result.shape, pointer: event.pointerType });
+  }
+
+  function onCanvasKeyDown(event: React.KeyboardEvent<HTMLCanvasElement>) {
+    const largeStep = event.shiftKey ? 80 : 24;
+    if (event.key === '+' || event.key === '=') {
+      event.preventDefault();
+      zoomIn();
+      return;
+    }
+    if (event.key === '-' || event.key === '_') {
+      event.preventDefault();
+      zoomOut();
+      return;
+    }
+    if (event.key === '0' || event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      fitToScreen();
+      return;
+    }
+    const arrowOffsets: Record<string, { x: number; y: number }> = {
+      ArrowUp: { x: 0, y: largeStep },
+      ArrowDown: { x: 0, y: -largeStep },
+      ArrowLeft: { x: largeStep, y: 0 },
+      ArrowRight: { x: -largeStep, y: 0 }
+    };
+    const nextOffset = arrowOffsets[event.key];
+    if (!nextOffset) return;
+    event.preventDefault();
+    setOffset((value) => ({ x: value.x + nextOffset.x, y: value.y + nextOffset.y }));
+    trackThrottled('pan_used', { shape: result.shape, pointer: 'keyboard' });
   }
 
   return (
@@ -304,9 +354,9 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
           ref={canvasRef}
           tabIndex={0}
           role="img"
-          aria-label={`${result.title} blueprint canvas. Drag with one finger, mouse, or pen to pan, use Fit to recenter, and use mouse wheel or pinch to zoom.`}
+          aria-label={`${result.title} blueprint canvas. Drag with a mouse or pen to pan. On touch screens, horizontal one-finger drags pan the blueprint and vertical swipes scroll the page. Use Fit to recenter, Ctrl or Command plus mouse wheel, plus and minus keys, or pinch to zoom.`}
           onWheel={onWheel}
-          onDoubleClick={fitToScreen}
+          onKeyDown={onCanvasKeyDown}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}

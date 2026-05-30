@@ -106,6 +106,16 @@ Do not submit `.audit-dist`, `.next`, `node_modules`, or other generated build a
 - PNG, SVG, CSV, and print helpers are imported on demand from click handlers instead of being static client imports.
 - The printable sheet is mounted only for a print job, then cleared after browser print, so large hidden layer tables do not stay in the normal DOM.
 
+
+## Latest interaction safety repair
+
+- The blueprint canvas no longer recenters on double-click and ordinary page scrolling remains available over the canvas area.
+- Mouse-wheel zoom is intentionally gated behind Ctrl/Cmd + wheel; toolbar buttons, keyboard shortcuts, and pinch zoom remain available.
+- Touch screens allow vertical page swipes over the canvas while horizontal one-finger drags can pan the blueprint, reducing accidental canvas movement during page scroll.
+- Number inputs in the active workspace and retained legacy controls blur on wheel so scrolling the page cannot silently change dimensions, thickness, cap height, or print ranges.
+- Share/manual-copy fallback dialogs now expose modal semantics and close with Escape.
+- URL query updates are debounced to avoid excessive history replacement while editing values.
+
 ## Latest CSS and legacy cleanup repair
 
 - `globals.css` now has explicit sections for foundation/site chrome, legacy component compatibility, the current task-first workspace, content assets, and print policy.

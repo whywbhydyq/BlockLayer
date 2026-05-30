@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type WheelEvent, type KeyboardEvent } from 'react';
 import { trackToolEvent } from '@/lib/analytics/events';
 import { layerSummaryText, rowListText, summaryText } from '@/lib/export/exportText';
 import type { BlueprintResult, LayeredResult, RowSegment, ShapeKind, TwoDimensionalResult } from '@/lib/geometry/types';
@@ -127,6 +127,15 @@ function validShape(value: string | null, fallback: ShapeKind): ShapeKind {
     : fallback;
 }
 
+
+function preventNumberWheelChange(event: WheelEvent<HTMLInputElement>) {
+  if (document.activeElement === event.currentTarget) event.currentTarget.blur();
+}
+
+function isEscape(event: KeyboardEvent<HTMLElement>) {
+  return event.key === 'Escape' || event.key === 'Esc';
+}
+
 export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
   const [state, setState] = useState<BuilderState>(() => normalizeInitialState(props));
   const [showCenter, setShowCenter] = useState(true);
@@ -149,6 +158,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
   const canvasRef = useRef<BlueprintCanvasHandle | null>(null);
   const manualCopyRef = useRef<HTMLTextAreaElement | null>(null);
   const companionRef = useRef<HTMLElement | null>(null);
+  const urlUpdateTimeout = useRef<number | null>(null);
   const { result, pending: blueprintPending, error: blueprintError } = useBlueprintResult(state, props.initialResult);
   const layered = isLayered(result) ? result : null;
   const currentLayer = layered ? layered.layers[layerIndex] || layered.layers[0] : null;
@@ -229,7 +239,15 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
       params.set('cap', String(state.capHeight));
       params.set('half', state.domeHalf);
     }
-    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    if (urlUpdateTimeout.current !== null) window.clearTimeout(urlUpdateTimeout.current);
+    urlUpdateTimeout.current = window.setTimeout(() => {
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+      if (currentUrl !== nextUrl) window.history.replaceState(null, '', nextUrl);
+    }, 180);
+    return () => {
+      if (urlUpdateTimeout.current !== null) window.clearTimeout(urlUpdateTimeout.current);
+    };
   }, [state]);
 
   useEffect(() => {
@@ -481,6 +499,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                   <span>Width</span>
                   <input
                     type="number"
+                    onWheel={preventNumberWheelChange}
                     min={3}
                     max={512}
                     value={state.width}
@@ -491,6 +510,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                   <span>Height</span>
                   <input
                     type="number"
+                    onWheel={preventNumberWheelChange}
                     min={3}
                     max={512}
                     value={state.height}
@@ -523,6 +543,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                     min={state.inputMode === 'diameter' ? 3 : 2}
                     max={state.inputMode === 'diameter' ? maxRoundDiameter : maxRoundRadius}
                     type="number"
+                    onWheel={preventNumberWheelChange}
                     onChange={(event) =>
                       state.inputMode === 'diameter' ? updateDiameter(Number(event.target.value)) : updateRadius(Number(event.target.value))
                     }
@@ -628,6 +649,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
               <input
                 className="thickness-number"
                 type="number"
+                onWheel={preventNumberWheelChange}
                 min={1}
                 max={state.shape === 'circle' || state.shape === 'ellipse' ? 8 : 4}
                 value={state.shape === 'circle' || state.shape === 'ellipse' ? state.thickness : state.shellThickness}
@@ -658,6 +680,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                 <input
                   className="thickness-number wide"
                   type="number"
+                  onWheel={preventNumberWheelChange}
                   min={1}
                   max={129}
                   value={state.capHeight}
@@ -731,6 +754,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
               <button type="button" className="icon-button" aria-label="Fullscreen" onClick={fullscreenCanvas}>
                 ⛶
               </button>
+              <span className="zoom-hint" aria-hidden="true">Ctrl/Cmd + wheel</span>
             </div>
           </div>
 
@@ -1056,6 +1080,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                       <span>From layer</span>
                       <input
                         type="number"
+                        onWheel={preventNumberWheelChange}
                         min={1}
                         max={layered.layerCount}
                         value={printStartLayer}
@@ -1066,6 +1091,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                       <span>To layer</span>
                       <input
                         type="number"
+                        onWheel={preventNumberWheelChange}
                         min={1}
                         max={layered.layerCount}
                         value={printEndLayer}
@@ -1088,7 +1114,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
               </p>
             )}
             {manualCopy && (
-              <div className="manual-copy-box" role="dialog" aria-label={`${manualCopy.label} manual fallback`}>
+              <div className="manual-copy-box" role="dialog" aria-modal="true" aria-label={`${manualCopy.label} manual fallback`} onKeyDown={(event) => isEscape(event) && setManualCopy(null)}>
                 <p>Clipboard permission was blocked. Select and copy manually:</p>
                 <textarea ref={manualCopyRef} readOnly value={manualCopy.text} onFocus={(event) => event.currentTarget.select()} />
                 <button type="button" onClick={() => setManualCopy(null)}>
