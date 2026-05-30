@@ -56,7 +56,7 @@ for (const matrix of ['circlePresets', 'ovalPresets', 'spherePresets', 'domePres
 
 
 const toolContent = read('src/lib/content/toolContent.ts');
-for (const needle of ['ToolContentPackage', 'getToolContentPackage', 'block-count', 'pixel-circle', 'center-guide', 'layered-sphere', 'dome-blueprint', 'Material count workflow']) {
+for (const needle of ['ToolContentPackage', 'getToolContentPackage', 'block-count', 'pixel-circle', 'center-guide', 'layered-sphere', 'dome-blueprint', 'Material count workflow', 'intentLinks', 'row-by-row Minecraft circle']) {
   assert(toolContent.includes(needle), `tool content package should include ${needle}`);
 }
 for (const [pagePath, contentKey] of [
@@ -114,7 +114,9 @@ for (const needle of [
   'generateBlueprint',
   'initialResult',
   'BlueprintWorkspace',
-  'ToolContentSection'
+  'ToolContentSection',
+  'faqSchema',
+  'JsonLd'
 ]) {
   assert(toolShell.includes(needle), `ToolShell server wrapper should include ${needle}`);
 }
@@ -217,6 +219,7 @@ assert(!legacyToolPage.includes('/tools/minecraft-circle-generator'), 'ToolPage 
 const schema = read('src/lib/seo/schema.ts');
 assert(schema.includes('guide.steps?.length'), 'HowTo schema should use explicit guide steps when available');
 assert(schema.includes('itemListSchema'), 'Index pages should have ItemList schema support');
+assert(schema.includes('featureList'), 'SoftwareApplication schema should expose current export/build features');
 
 const layerAlias = read('src/app/minecraft-layer-by-layer-sphere/page.tsx');
 const domeAlias = read('src/app/minecraft-dome-blueprint/page.tsx');
@@ -243,7 +246,8 @@ for (const needle of [
   '05 print policy',
   'Final current-builder print visibility',
   'output-card',
-  'related-link-list'
+  'related-link-list',
+  'intent-link-list'
 ]) {
   assert(css.includes(needle), `CSS should include ${needle}`);
 }
@@ -264,7 +268,7 @@ for (const legacyComponent of ['CircleControls.tsx', 'EllipseControls.tsx', 'Sph
 }
 
 const readme = read('README.md');
-for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'Latest interaction safety repair', 'src/lib/content/toolContent.ts']) {
+for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'Latest interaction safety repair', 'Latest SEO growth optimization', 'docs/SEO_GROWTH_PLAN.md', 'src/lib/content/toolContent.ts']) {
   assert(readme.includes(needle), `README should include ${needle}`);
 }
 for (const archivedReport of ['docs/archive/IMPLEMENTATION_AUDIT.md', 'docs/archive/FINAL_PLAN_COMPLETION_REPORT.md', 'docs/archive/USER_NEEDS_AND_LAYOUT_AUDIT.md', 'docs/archive/README.md']) {
@@ -274,5 +278,10 @@ for (const rootReport of ['IMPLEMENTATION_AUDIT.md', 'FINAL_PLAN_COMPLETION_REPO
   assert(!existsSync(join(root, rootReport)), `${rootReport} should be archived, not in the repository root`);
 }
 
+
+const seoGrowthPlan = read('docs/SEO_GROWTH_PLAN.md');
+for (const needle of ['Priority query clusters', '4/8/12 week review loop', 'Do not create a new long-tail URL without at least C-level evidence']) {
+  assert(seoGrowthPlan.includes(needle), `SEO growth plan should include ${needle}`);
+}
 
 console.log('ui smoke tests passed');

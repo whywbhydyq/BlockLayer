@@ -34,6 +34,20 @@ export function ToolContentSection({ contentPackage }: ToolContentSectionProps) 
         </ul>
       </section>
 
+      {contentPackage.intentLinks && contentPackage.intentLinks.length > 0 && (
+        <section className="info-card intent-links-card">
+          <h3>Popular blueprint tasks this page handles</h3>
+          <ul className="intent-link-list">
+            {contentPackage.intentLinks.map((link) => (
+              <li key={`${link.href}-${link.label}`}>
+                <a href={link.href}>{link.label}</a>
+                <span>{link.description}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="info-card related-content-card">
         <h3>Related next steps</h3>
         <div className="related-link-list">

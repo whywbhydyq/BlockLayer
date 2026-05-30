@@ -1,5 +1,7 @@
+import { JsonLd } from '@/components/content/JsonLd';
 import { getToolContentPackage } from '@/lib/content/toolContent';
 import { generateBlueprint } from '@/lib/geometry/generateBlueprint';
+import { faqSchema } from '@/lib/seo/schema';
 import { initialFormState, type ToolShellProps } from './controlTypes';
 import { BlueprintWorkspace } from './BlueprintWorkspace';
 import { ToolContentSection } from './ToolContentSection';
@@ -52,6 +54,7 @@ export function ToolShell(props: ToolShellProps) {
           </a>
         </nav>
       </header>
+      {contentPackage.faq.length > 0 && <JsonLd data={faqSchema(contentPackage.faq)} />}
       <BlueprintWorkspace {...props} initialResult={initialResult} />
       <ToolContentSection contentPackage={contentPackage} />
     </section>

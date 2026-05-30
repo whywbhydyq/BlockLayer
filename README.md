@@ -107,6 +107,14 @@ Do not submit `.audit-dist`, `.next`, `node_modules`, or other generated build a
 - The printable sheet is mounted only for a print job, then cleared after browser print, so large hidden layer tables do not stay in the normal DOM.
 
 
+
+## Latest SEO growth optimization
+
+- Core page titles and descriptions were tightened around task-specific search promises: row-by-row circle output, layer-by-layer sphere output, dome cap height, and block-count material planning.
+- `ToolContentSection.tsx` now renders second-screen intent links for long-tail tasks without adding thin pages or moving content above the builder workspace.
+- Visible FAQ content from each tool content package now emits matching FAQPage JSON-LD from the server wrapper.
+- `docs/SEO_GROWTH_PLAN.md` records the current keyword-cluster plan, evidence levels, and 4/8/12 week GSC review loop.
+
 ## Latest interaction safety repair
 
 - The blueprint canvas no longer recenters on double-click and ordinary page scrolling remains available over the canvas area.

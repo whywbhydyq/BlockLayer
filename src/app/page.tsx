@@ -6,7 +6,7 @@ import { softwareApplicationSchema } from '@/lib/seo/schema';
 export const metadata: Metadata = {
   title: 'Minecraft Circle Generator & Blueprint Builder',
   description:
-    'Generate Minecraft circle blueprints with row segments, block counts, center guides, PNG/SVG/CSV export, print output, and share links. Switch to oval, sphere, or dome when needed.',
+    'Generate Minecraft circle blueprints with row-by-row segments, block counts, center guides, PNG/SVG/CSV export, print output, and share links. Switch to oval, sphere, or dome when needed.',
   alternates: { canonical: '/' }
 };
 

@@ -22,4 +22,5 @@ export type ToolContentPackage = {
   tips: string[];
   faq: Array<[string, string]>;
   links: Array<{ label: string; href: string }>;
+  intentLinks?: Array<{ label: string; href: string; description: string }>;
 };

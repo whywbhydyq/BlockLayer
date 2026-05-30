@@ -46,6 +46,7 @@ const mustExist = [
   'src/lib/seo/pages.ts',
   'src/lib/content/toolContent.ts',
   'src/lib/content/toolContentTypes.ts',
+  'docs/SEO_GROWTH_PLAN.md',
   'public/ads.txt'
 ];
 for (const file of mustExist) if (!existsSync(join(root, file))) failures.push(`Missing required file: ${file}`);
@@ -136,7 +137,9 @@ for (const needle of [
   'initialResult',
   'BlueprintWorkspace',
   'ToolContentSection',
-  'contentPackage.intro'
+  'contentPackage.intro',
+  'faqSchema',
+  'JsonLd'
 ]) {
   if (!toolShell.includes(needle)) failures.push(`ToolShell server wrapper missing feature: ${needle}`);
 }
@@ -208,7 +211,11 @@ for (const needle of [
   'dome-blueprint',
   'Outputs you can use immediately',
   'Material count workflow',
-  'Selected range'
+  'Selected range',
+  'intentLinks',
+  'row-by-row Minecraft circle',
+  'Layer-by-layer sphere blueprint',
+  'Minecraft dome blueprint generator'
 ]) {
   if (!toolContent.includes(needle)) failures.push(`Task-focused content package missing: ${needle}`);
 }
@@ -228,7 +235,7 @@ for (const [pagePath, contentKey] of [
 }
 if (!read('src/app/presets/[slug]/page.tsx').includes('contentKey="preset"')) failures.push('Preset tool workspace should use preset contentKey');
 const toolContentSection = read('src/components/tool/ToolContentSection.tsx');
-for (const needle of ['contentPackage.howToSteps', 'contentPackage.outputs', 'contentPackage.tips', 'contentPackage.faq', 'contentPackage.links', 'Task-focused help and related links']) {
+for (const needle of ['contentPackage.howToSteps', 'contentPackage.outputs', 'contentPackage.tips', 'contentPackage.faq', 'contentPackage.links', 'contentPackage.intentLinks', 'Popular blueprint tasks this page handles', 'Task-focused help and related links']) {
   if (!toolContentSection.includes(needle)) failures.push(`ToolContentSection should render task-focused content package: ${needle}`);
 }
 
@@ -279,7 +286,9 @@ for (const needle of [
   'preset-index-list',
   'guide-index-list',
   'output-card',
-  'related-link-list'
+  'related-link-list',
+  'intent-links-card',
+  'intent-link-list'
 ]) {
   if (!css.includes(needle)) failures.push(`CSS missing selector: ${needle}`);
 }
@@ -312,6 +321,7 @@ if (!ellipse.includes('if (inside) filledBlocks += 1;') || !ellipse.includes('fi
 const schema = read('src/lib/seo/schema.ts');
 if (!schema.includes('guide.steps?.length')) failures.push('HowTo schema should use explicit guide steps when available');
 if (!schema.includes('itemListSchema')) failures.push('Index pages should have ItemList schema support');
+if (!schema.includes('featureList')) failures.push('SoftwareApplication schema should expose current export/build features');
 const utils = read('src/lib/geometry/utils.ts');
 if (!utils.includes('footprintCenterWarnings')) failures.push('Center warnings must distinguish mixed odd/even footprints');
 
@@ -421,7 +431,7 @@ for (const legacyComponent of [
 }
 
 const readme = read('README.md');
-for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest performance boundary repair', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'Latest interaction safety repair', 'src/lib/content/toolContent.ts', 'BlueprintWorkspace.tsx', 'ToolContentSection.tsx']) {
+for (const needle of ['Source of truth and archived reports', 'docs/archive/', 'LEGACY_COMPONENTS.md', 'Latest performance boundary repair', 'Latest CSS and legacy cleanup repair', 'Latest task-focused content package repair', 'Latest interaction safety repair', 'Latest SEO growth optimization', 'docs/SEO_GROWTH_PLAN.md', 'src/lib/content/toolContent.ts', 'BlueprintWorkspace.tsx', 'ToolContentSection.tsx']) {
   if (!readme.includes(needle)) failures.push(`README missing current source-of-truth note: ${needle}`);
 }
 for (const archivedReport of [
@@ -434,6 +444,11 @@ for (const archivedReport of [
 }
 for (const rootReport of ['IMPLEMENTATION_AUDIT.md', 'FINAL_PLAN_COMPLETION_REPORT.md', 'USER_NEEDS_AND_LAYOUT_AUDIT.md']) {
   if (existsSync(join(root, rootReport))) failures.push(`Historical report should be archived, not in repository root: ${rootReport}`);
+}
+
+const seoGrowthPlan = read('docs/SEO_GROWTH_PLAN.md');
+for (const needle of ['Priority query clusters', '4/8/12 week review loop', 'Do not create a new long-tail URL without at least C-level evidence']) {
+  if (!seoGrowthPlan.includes(needle)) failures.push(`SEO growth plan missing: ${needle}`);
 }
 
 const packageJson = JSON.parse(read('package.json'));

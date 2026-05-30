@@ -31,7 +31,14 @@ export function softwareApplicationSchema(page?: ToolPageConfig | PresetConfig):
       page?.description ||
       'Generate printable circle, oval, sphere, and dome block blueprints with pan, zoom, row labels, block counts, PNG/SVG/CSV export, share links, and print output.',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-    isAccessibleForFree: true
+    isAccessibleForFree: true,
+    featureList: [
+      'row-by-row blueprint segments',
+      'center guide and odd/even footprint warnings',
+      'block count, stack count, and shulker-style material estimates',
+      'PNG, SVG, CSV, print, copy, and share output',
+      'layer-by-layer sphere and dome blueprints'
+    ]
   };
 }
 

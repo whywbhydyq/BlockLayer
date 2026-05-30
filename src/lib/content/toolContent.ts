@@ -41,6 +41,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'Open the circle generator', href: '/minecraft-circle-generator' },
       { label: 'Open the sphere generator', href: '/minecraft-sphere-generator' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'row-by-row Minecraft circle generator', href: '/minecraft-circle-generator', description: 'Use row segments instead of copying a screenshot by eye.' },
+      { label: 'Layer-by-layer sphere generator', href: '/minecraft-layer-by-layer-sphere', description: 'Split large 3D builds into buildable Y layers.' },
+      { label: 'Minecraft dome blueprint with cap height', href: '/minecraft-dome-blueprint', description: 'Plan roofs and observatory-style domes with selected layer output.' },
+      { label: 'Minecraft block count calculator', href: '/minecraft-block-count-calculator', description: 'Estimate blocks, stacks, and shulker-style totals from the active blueprint.' }
     ]
   },
   circle: {
@@ -74,6 +80,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: '31 block circle preset', href: '/presets/minecraft-31-circle' },
       { label: 'Odd vs even centers', href: '/guides/odd-even-minecraft-circle-centers' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Row-by-row Minecraft circle', href: '/minecraft-circle-generator', description: 'Generate Z rows with X ranges for each line of the footprint.' },
+      { label: 'Minecraft circle center guide', href: '/odd-even-minecraft-circle-centers', description: 'Check odd, even, and 2×2 center starts before building.' },
+      { label: '31 block circle preset', href: '/presets/minecraft-31-circle', description: 'Open a common tower and arena diameter as an editable preset.' },
+      { label: '51 block circle preset', href: '/presets/minecraft-51-circle', description: 'Start from a larger circle and export rows, PNG, SVG, or CSV.' }
     ]
   },
   oval: {
@@ -107,6 +119,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: '31×21 oval preset', href: '/presets/minecraft-31x21-oval' },
       { label: 'How to build an oval', href: '/guides/how-to-build-an-oval-in-minecraft' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Minecraft oval width × height generator', href: '/minecraft-oval-generator', description: 'Use separate width and height instead of forcing a circle diameter.' },
+      { label: '31×21 oval preset', href: '/presets/minecraft-31x21-oval', description: 'Open a balanced stadium-style oval and adjust from there.' },
+      { label: '64×32 oval preset', href: '/presets/minecraft-64x32-oval', description: 'Start from a wide flattened footprint for paths and arenas.' },
+      { label: 'Odd/even oval center guide', href: '/guides/odd-even-minecraft-circle-centers', description: 'Avoid one-axis center-line mistakes on mixed parity ovals.' }
     ]
   },
   sphere: {
@@ -140,6 +158,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: '31 block sphere preset', href: '/presets/minecraft-31-sphere' },
       { label: 'How to build a sphere', href: '/guides/how-to-build-a-sphere-in-minecraft' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Layer-by-layer sphere blueprint', href: '/minecraft-layer-by-layer-sphere', description: 'Use a dedicated landing page for staged sphere builds.' },
+      { label: 'Hollow Minecraft sphere generator', href: '/minecraft-sphere-generator', description: 'Switch between hollow shell and solid material estimates.' },
+      { label: '31 block sphere preset', href: '/presets/minecraft-31-sphere', description: 'Open a common medium sphere with editable layers.' },
+      { label: 'Selected-range CSV export', href: '/guides/minecraft-blueprint-csv-export', description: 'Export only the layers you plan to build in one session.' }
     ]
   },
   dome: {
@@ -173,6 +197,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: '31 block dome preset', href: '/presets/minecraft-31-dome' },
       { label: 'How to build a dome', href: '/guides/how-to-build-a-dome-in-minecraft' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Minecraft dome blueprint', href: '/minecraft-dome-blueprint', description: 'Use the focused dome page for cap height and print-ready layer rows.' },
+      { label: '51 block dome preset', href: '/presets/minecraft-51-dome', description: 'Open a larger dome preset for roofs and observatories.' },
+      { label: 'Print selected dome layers', href: '/guides/print-minecraft-blueprints', description: 'Print only the layer range needed for the current build session.' },
+      { label: 'Dome block count guide', href: '/guides/minecraft-block-counts-stacks-shulkers', description: 'Convert blueprint totals into stacks and shulker-style planning.' }
     ]
   },
   'block-count': {
@@ -206,6 +236,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'Block count guide', href: '/guides/minecraft-block-counts-stacks-shulkers' },
       { label: 'Browse material presets', href: '/presets' },
       { label: 'CSV export guide', href: '/guides/minecraft-blueprint-csv-export' }
+    ],
+    intentLinks: [
+      { label: 'Circle block count', href: '/minecraft-circle-generator', description: 'Compare outline and filled counts for a flat circle.' },
+      { label: 'Sphere block count by layer', href: '/minecraft-sphere-generator', description: 'Review total blocks and current-layer counts for 3D shells.' },
+      { label: 'Stacks and shulker guide', href: '/guides/minecraft-block-counts-stacks-shulkers', description: 'Use stacks of 64 and shulker-style totals for survival planning.' },
+      { label: 'CSV material planning', href: '/guides/minecraft-blueprint-csv-export', description: 'Move layered output into a spreadsheet for grouped collection.' }
     ]
   },
   'pixel-circle': {
@@ -239,6 +275,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'Circle generator', href: '/minecraft-circle-generator' },
       { label: 'Odd vs even centers', href: '/guides/odd-even-minecraft-circle-centers' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Minecraft pixel circle generator', href: '/minecraft-pixel-circle', description: 'Use a reproducible block-center circle with explicit row ranges.' },
+      { label: 'Circle row segment generator', href: '/minecraft-circle-generator', description: 'Copy exact row ranges instead of relying on visual estimation.' },
+      { label: 'Even diameter center guide', href: '/odd-even-minecraft-circle-centers', description: 'Check whether the start point is one block, a line, or a 2×2 area.' },
+      { label: 'SVG circle export', href: '/minecraft-circle-generator', description: 'Download a scalable vector reference from the same blueprint.' }
     ]
   },
   'center-guide': {
@@ -272,6 +314,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'Center guide article', href: '/guides/odd-even-minecraft-circle-centers' },
       { label: 'Circle generator', href: '/minecraft-circle-generator' },
       { label: 'Oval generator', href: '/minecraft-oval-generator' }
+    ],
+    intentLinks: [
+      { label: 'Odd circle center', href: '/guides/odd-even-minecraft-circle-centers', description: 'Use one center block when both footprint dimensions are odd.' },
+      { label: 'Even circle center', href: '/odd-even-minecraft-circle-centers', description: 'Mark the grid-line center or 2×2 center area before mirroring.' },
+      { label: 'Mixed odd/even oval center', href: '/minecraft-oval-generator', description: 'Use the oval tool when only one axis is centered between blocks.' },
+      { label: '31 block circle preset', href: '/presets/minecraft-31-circle', description: 'Open a common odd-diameter preset and compare center behavior.' }
     ]
   },
   'layered-sphere': {
@@ -301,6 +349,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'Main sphere generator', href: '/minecraft-sphere-generator' },
       { label: 'Sphere guide', href: '/guides/how-to-build-a-sphere-in-minecraft' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Minecraft layer-by-layer sphere generator', href: '/minecraft-layer-by-layer-sphere', description: 'Use the focused sphere page for staged Y-layer builds.' },
+      { label: 'Hollow sphere blueprint', href: '/minecraft-sphere-generator', description: 'Plan shell thickness and material totals before exporting.' },
+      { label: 'Sphere selected-range print', href: '/guides/print-minecraft-blueprints', description: 'Print only the layer range you need for a large sphere.' },
+      { label: '31 block sphere preset', href: '/presets/minecraft-31-sphere', description: 'Open a medium sphere starting point with editable layers.' }
     ]
   },
   'dome-blueprint': {
@@ -330,6 +384,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'Main dome generator', href: '/minecraft-dome-generator' },
       { label: 'Dome guide', href: '/guides/how-to-build-a-dome-in-minecraft' },
       ...sharedLinks
+    ],
+    intentLinks: [
+      { label: 'Minecraft dome blueprint generator', href: '/minecraft-dome-blueprint', description: 'Use the focused dome page for cap height and layer export.' },
+      { label: 'Dome cap height guide', href: '/guides/how-to-build-a-dome-in-minecraft', description: 'Check how cap height changes the included layers.' },
+      { label: '51 block dome preset', href: '/presets/minecraft-51-dome', description: 'Open a larger dome preset and adjust hollow/solid settings.' },
+      { label: 'Print dome layer range', href: '/guides/print-minecraft-blueprints', description: 'Generate print sheets only for the layers you are ready to build.' }
     ]
   },
   preset: {
@@ -363,6 +423,12 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
       { label: 'All presets', href: '/presets' },
       { label: 'All guides', href: '/guides' },
       { label: 'Main circle generator', href: '/minecraft-circle-generator' }
+    ],
+    intentLinks: [
+      { label: 'Browse all circle presets', href: '/presets', description: 'Compare nearby diameters before choosing a final build size.' },
+      { label: 'Main circle generator', href: '/minecraft-circle-generator', description: 'Switch from a preset to a blank editable circle workspace.' },
+      { label: 'Blueprint export guide', href: '/guides/minecraft-blueprint-csv-export', description: 'Decide when to use PNG, SVG, CSV, or print output.' },
+      { label: 'Block count planning', href: '/minecraft-block-count-calculator', description: 'Use totals, stacks, and shulker-style estimates before collecting materials.' }
     ]
   }
 };

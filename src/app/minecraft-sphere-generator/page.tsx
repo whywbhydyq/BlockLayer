@@ -4,9 +4,9 @@ import { ToolShell } from '@/components/tool/ToolShell';
 import { softwareApplicationSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Sphere Generator - Layer-by-Layer Blueprint',
+  title: 'Minecraft Sphere Generator - Layer-by-Layer Hollow or Solid Blueprint',
   description:
-    'Generate hollow or solid Minecraft spheres layer by layer with row segments, current-layer preview, block counts, PNG/SVG/CSV export, selected-layer print output, and share links.',
+    'Generate hollow or solid Minecraft spheres layer by layer with current-layer preview, row segments, block counts, selected-range CSV, print output, and share links.',
   alternates: { canonical: '/minecraft-sphere-generator' }
 };
 

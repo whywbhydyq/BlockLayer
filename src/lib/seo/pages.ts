@@ -38,10 +38,10 @@ export const toolPages: ToolPageConfig[] = [
   {
     path: '/minecraft-circle-generator',
     shape: 'circle',
-    title: 'Minecraft Circle Generator - Row Blueprint & Block Count',
+    title: 'Minecraft Circle Generator - Row Blueprint, Block Count & Exports',
     heading: 'Minecraft Circle Generator',
     description:
-      'Generate circle blueprints by diameter or radius with center guides, row segments, block counts, PNG/SVG/CSV export, print output, and share links.'
+      'Enter a diameter or radius to generate a Minecraft circle blueprint with row segments, center guides, block counts, PNG/SVG/CSV export, print output, and share links.'
   },
   {
     path: '/minecraft-oval-generator',
@@ -54,15 +54,15 @@ export const toolPages: ToolPageConfig[] = [
   {
     path: '/minecraft-sphere-generator',
     shape: 'sphere',
-    title: 'Minecraft Sphere Generator - Layer-by-Layer Blueprint',
+    title: 'Minecraft Sphere Generator - Layer-by-Layer Hollow or Solid Blueprint',
     heading: 'Minecraft Sphere Generator',
     description:
-      'Generate hollow or solid Minecraft spheres layer by layer with row segments, current-layer preview, block counts, PNG/SVG/CSV export, selected-layer print output, and share links.'
+      'Generate hollow or solid Minecraft spheres layer by layer with current-layer preview, row segments, block counts, selected-range CSV, print output, and share links.'
   },
   {
     path: '/minecraft-dome-generator',
     shape: 'dome',
-    title: 'Minecraft Dome Generator - Layer Blueprint & Cap Height',
+    title: 'Minecraft Dome Generator - Cap Height, Layers & Block Count',
     heading: 'Minecraft Dome Generator',
     description:
       'Generate Minecraft dome blueprints with top/bottom caps, cap height, hollow/solid layers, block counts, PNG/SVG/CSV export, selected-layer print output, and share links.'
@@ -70,9 +70,9 @@ export const toolPages: ToolPageConfig[] = [
   {
     path: '/minecraft-block-count-calculator',
     shape: 'circle',
-    title: 'Minecraft Block Count Calculator for Circles, Spheres & Domes',
+    title: 'Minecraft Block Count Calculator - Stacks, Shulkers & Blueprint Totals',
     heading: 'Minecraft Block Count Calculator',
-    description: 'Calculate blocks, 64-stacks, and shulker estimates from editable Minecraft circle, oval, sphere, and dome blueprints.'
+    description: 'Calculate Minecraft blueprint totals, 64-stacks, leftover blocks, current-layer counts, and shulker-style estimates for circles, ovals, spheres, and domes.'
   }
 ];
 
