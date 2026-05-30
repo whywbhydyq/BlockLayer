@@ -1,4 +1,6 @@
 'use client';
+// Legacy modular component retained for migration/reference.
+// ToolShell.tsx is the current primary homepage/tool-page workspace; see LEGACY_COMPONENTS.md before reintroducing this component.
 import { trackToolEvent } from '@/lib/analytics/events';
 import type { LayeredResult } from '@/lib/geometry';
 

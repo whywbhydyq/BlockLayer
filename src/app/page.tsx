@@ -4,16 +4,25 @@ import { ToolShell } from '@/components/tool/ToolShell';
 import { softwareApplicationSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Circle & Oval Blueprint Builder',
-  description: 'Build block-by-block Minecraft-style circle and oval blueprints with row segments, center guides, block counts, PNG export, print output, and share links.',
+  title: 'Minecraft Circle Generator & Blueprint Builder',
+  description:
+    'Generate Minecraft circle blueprints with row segments, block counts, center guides, PNG/SVG/CSV export, print output, and share links. Switch to oval, sphere, or dome when needed.',
   alternates: { canonical: '/' }
 };
 
 export default function HomePage() {
   return (
     <main id="main" className="builder-page">
-      <JsonLd data={softwareApplicationSchema({ path: '/', shape: 'circle', title: 'Minecraft Circle & Oval Blueprint Builder', heading: 'Minecraft Circle & Oval Blueprint Builder', description: metadata.description as string })} />
-      <ToolShell title="Minecraft Circle & Oval Blueprint Builder" initialShape="circle" />
+      <JsonLd
+        data={softwareApplicationSchema({
+          path: '/',
+          shape: 'circle',
+          title: 'Minecraft Circle Generator & Blueprint Builder',
+          heading: 'Minecraft Circle Generator & Blueprint Builder',
+          description: metadata.description as string
+        })}
+      />
+      <ToolShell title="Minecraft Circle Generator & Blueprint Builder" initialShape="circle" contentKey="home" />
     </main>
   );
 }

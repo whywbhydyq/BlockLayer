@@ -1,6 +1,6 @@
 import { countStacks } from './blockCount';
 import type { CircleParams, GridCell, TwoDimensionalResult } from './types';
-import { axisCoords, boundsFromSizes, cellCenter, centerType, centerWarning, diameterFromInput, rowsFromCells, sizeWarnings } from './utils';
+import { axisCoords, boundsFromSizes, cellCenter, centerType, footprintCenterWarnings, diameterFromInput, rowsFromCells, sizeWarnings } from './utils';
 
 export function generateCircle(params: CircleParams): TwoDimensionalResult {
   const diameter = diameterFromInput(params.inputMode, params.diameter, params.radius, 1024);
@@ -37,7 +37,7 @@ export function generateCircle(params: CircleParams): TwoDimensionalResult {
     centerType: centerType(diameter),
     totalBlocks,
     stacks: countStacks(totalBlocks),
-    warnings: [centerWarning(diameter), ...sizeWarnings(diameter, diameter)],
+    warnings: [...footprintCenterWarnings(diameter, diameter), ...sizeWarnings(diameter, diameter)],
     generatedAt: new Date().toISOString(),
     cells,
     rows,

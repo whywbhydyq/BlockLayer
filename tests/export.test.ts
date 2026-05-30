@@ -27,8 +27,10 @@ assert(blueprintPalette(true).outline === '#000000', 'high contrast palette shou
 
 const sphere = generateSphere({ inputMode: 'diameter', diameter: 9, radius: 4, mode: 'hollow', shellThickness: 1, buildDirection: 'bottom-up' });
 const selectedCsv = exportBlueprintCsv(sphere, 2, 'selected');
+const rangeCsv = exportBlueprintCsv(sphere, 2, 'range', { start: 2, end: 4 });
 const allCsv = exportBlueprintCsv(sphere, 2, 'all');
 assert(selectedCsv.split('\n').length === 2, 'selected sphere CSV should contain header plus one layer');
+assert(rangeCsv.split('\n').length === 4, 'range sphere CSV should contain header plus the selected layer range');
 assert(allCsv.split('\n').length === sphere.layerCount + 1, 'all sphere CSV should contain every layer');
 assert(layerSummaryText(sphere).includes('Layer 1'), 'layer summary should include layer labels');
 const svg = exportBlueprintSvg(sphere, 2);

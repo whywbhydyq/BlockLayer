@@ -1,3 +1,5 @@
+import type { ToolContentKey } from '@/lib/content/toolContentTypes';
+import type { BlueprintInputState } from '@/lib/geometry/generateBlueprint';
 import type { BuildDirection, DomeHalf, FillMode, InputMode, ShapeKind, SolidMode } from '@/lib/geometry';
 
 export type FormState = {
@@ -26,7 +28,11 @@ export type ToolShellProps = {
   initialWidth?: number;
   initialHeight?: number;
   title?: string;
+  contentKey?: ToolContentKey;
 };
+
+
+export type BuilderState = BlueprintInputState;
 
 export type UpdateFormState = <K extends keyof FormState>(key: K, value: FormState[K]) => void;
 

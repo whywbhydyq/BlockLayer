@@ -1,4 +1,6 @@
 'use client';
+// Legacy modular component retained for migration/reference.
+// ToolShell.tsx is the current primary homepage/tool-page workspace; see LEGACY_COMPONENTS.md before reintroducing this component.
 import type { FormState, UpdateFormState } from './controlTypes';
 import { shapeLabels } from './controlTypes';
 import type { ShapeKind } from '@/lib/geometry';

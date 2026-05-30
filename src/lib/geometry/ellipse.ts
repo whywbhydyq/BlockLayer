@@ -1,6 +1,6 @@
 import { countStacks } from './blockCount';
 import type { EllipseParams, GridCell, TwoDimensionalResult } from './types';
-import { axisCoords, boundsFromSizes, cellCenter, centerType, centerWarning, clampInt, rowsFromCells, sizeWarnings } from './utils';
+import { axisCoords, boundsFromSizes, cellCenter, centerType, footprintCenterWarnings, clampInt, rowsFromCells, sizeWarnings } from './utils';
 
 export function generateEllipse(params: EllipseParams): TwoDimensionalResult {
   const width = clampInt(params.width, 1, 1024);
@@ -42,7 +42,7 @@ export function generateEllipse(params: EllipseParams): TwoDimensionalResult {
     centerType: width % 2 === 1 && height % 2 === 1 ? 'single-block' : 'between-blocks',
     totalBlocks,
     stacks: countStacks(totalBlocks),
-    warnings: [centerWarning(width), centerWarning(height), ...sizeWarnings(width, height)],
+    warnings: [...footprintCenterWarnings(width, height), ...sizeWarnings(width, height)],
     generatedAt: new Date().toISOString(),
     cells,
     rows: rowsFromCells(cells),

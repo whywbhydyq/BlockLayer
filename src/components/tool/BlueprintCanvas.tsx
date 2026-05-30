@@ -2,7 +2,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import type { BlueprintResult, TwoDimensionalResult } from '@/lib/geometry';
 import { trackToolEvent } from '@/lib/analytics/events';
-import { downloadCanvasPng } from '@/lib/export/exportPng';
 import { drawBlueprintGrid } from '@/lib/render/canvasRenderer';
 import { clampScale, distanceBetweenTouches, fitBoundsToViewport } from '@/lib/render/viewport';
 
@@ -47,9 +46,12 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const lastPinchDistance = useRef<number | null>(null);
+  const pinchActive = useRef(false);
   const baseScale = useRef<number | null>(null);
   const lastTracked = useRef<Record<string, number>>({});
   const resizeFrame = useRef<number | null>(null);
+  const panPointerId = useRef<number | null>(null);
+  const lastPanPoint = useRef<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const data = useMemo(() => view(result, selectedLayerIndex), [result, selectedLayerIndex]);
@@ -167,7 +169,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
     }
   }, []);
 
-  const exportFullBlueprint = useCallback((filename: string) => {
+  const exportFullBlueprint = useCallback(async (filename: string) => {
     const padding = 72;
     const maxCanvas = 4096;
     const maxCells = Math.max(data.bounds.width, data.bounds.height, 1);
@@ -196,6 +198,7 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
       highContrast,
       highlightedRowZ
     });
+    const { downloadCanvasPng } = await import('@/lib/export/exportPng');
     downloadCanvasPng(canvas, filename);
   }, [data, highContrast, highlightedRowZ, showAxis, showCenter, showCoordinates, showGhost, showSegments]);
 
@@ -227,7 +230,11 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
 
   function onTouchStart(event: React.TouchEvent<HTMLCanvasElement>) {
     if (event.touches.length < 2) return;
+    event.preventDefault();
+    pinchActive.current = true;
     lastPinchDistance.current = distanceBetweenTouches(event.touches);
+    panPointerId.current = null;
+    lastPanPoint.current = null;
   }
 
   function onTouchMove(event: React.TouchEvent<HTMLCanvasElement>) {
@@ -243,6 +250,42 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
     });
     lastPinchDistance.current = distance;
     trackThrottled('zoom_used', { shape: result.shape, direction: ratio >= 1 ? 'pinch-out' : 'pinch-in' });
+  }
+
+  function onTouchEnd(event: React.TouchEvent<HTMLCanvasElement>) {
+    if (event.touches.length >= 2) return;
+    lastPinchDistance.current = null;
+    pinchActive.current = false;
+  }
+
+  function stopPan(event?: React.PointerEvent<HTMLCanvasElement>) {
+    if (event && panPointerId.current !== event.pointerId) return;
+    if (event && event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    panPointerId.current = null;
+    lastPanPoint.current = null;
+  }
+
+  function onPointerDown(event: React.PointerEvent<HTMLCanvasElement>) {
+    const isTouchPointer = event.pointerType === 'touch';
+    if (isTouchPointer && pinchActive.current) return;
+    event.preventDefault();
+    panPointerId.current = event.pointerId;
+    lastPanPoint.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function onPointerMove(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType === 'touch' && pinchActive.current) return;
+    if (panPointerId.current !== event.pointerId || !lastPanPoint.current) return;
+    event.preventDefault();
+    const dx = event.clientX - lastPanPoint.current.x;
+    const dy = event.clientY - lastPanPoint.current.y;
+    if (!dx && !dy) return;
+    lastPanPoint.current = { x: event.clientX, y: event.clientY };
+    setOffset((value) => ({ x: value.x + dx, y: value.y + dy }));
+    trackThrottled('pan_used', { shape: result.shape, pointer: event.pointerType });
   }
 
   return (
@@ -261,15 +304,17 @@ export const BlueprintCanvas = forwardRef<BlueprintCanvasHandle, Props>(function
           ref={canvasRef}
           tabIndex={0}
           role="img"
-          aria-label={`${result.title} blueprint canvas. The blueprint is fixed in place; use Fit to recenter and mouse wheel or pinch to zoom.`}
+          aria-label={`${result.title} blueprint canvas. Drag with one finger, mouse, or pen to pan, use Fit to recenter, and use mouse wheel or pinch to zoom.`}
           onWheel={onWheel}
           onDoubleClick={fitToScreen}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={() => { lastPinchDistance.current = null; }}
-          onPointerDown={(event) => {
-            if (event.pointerType !== 'touch') event.preventDefault();
-          }}
+          onTouchEnd={onTouchEnd}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={stopPan}
+          onPointerLeave={stopPan}
+          onPointerCancel={stopPan}
         />
       </div>
     </div>

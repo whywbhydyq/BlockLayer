@@ -1,4 +1,6 @@
 'use client';
+// Legacy modular component retained for migration/reference.
+// ToolShell.tsx is the current primary homepage/tool-page workspace; see LEGACY_COMPONENTS.md before reintroducing this component.
 import type { BuildDirection, InputMode, SolidMode } from '@/lib/geometry';
 import type { FormState, UpdateFormState } from './controlTypes';
 import { parseNumber } from './controlTypes';

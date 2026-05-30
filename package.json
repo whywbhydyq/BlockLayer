@@ -2,7 +2,7 @@
   "name": "blocklayer",
   "version": "1.0.0",
   "private": true,
-  "description": "BlockLayer is a local-first Minecraft circle and oval blueprint builder with row segments, center guides, block counts, PNG export, print output, and share links.",
+  "description": "BlockLayer is a local-first Minecraft circle, oval, sphere, dome, and block-count blueprint builder with row segments, center guides, exports, print output, and share links.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -1,5 +1,8 @@
 import type { BlueprintResult, LayerBlueprint, RowSegment, LayeredResult, TwoDimensionalResult } from '../geometry';
 
+export type CsvExportMode = 'selected' | 'all' | 'range';
+export type CsvLayerRange = { start: number; end: number };
+
 function quote(value: string | number) {
   return `"${String(value).replace(/"/g, '""')}"`;
 }
@@ -20,11 +23,13 @@ function layerLine(layer: LayerBlueprint) {
   return [layer.index + 1, layer.y, layer.blockCount, layer.localRadius.toFixed(2), layer.rows.map((row) => `Z ${row.z}: ${segmentText(row)}`).join(' | ')].map(quote).join(',');
 }
 
-export function exportBlueprintCsv(result: BlueprintResult, selectedLayerIndex = 0, mode: 'selected' | 'all' = 'all') {
+export function exportBlueprintCsv(result: BlueprintResult, selectedLayerIndex = 0, mode: CsvExportMode = 'all', range?: CsvLayerRange) {
   if (isLayered(result)) {
     const header = ['layer', 'y', 'blocks', 'local_radius', 'row_segments'];
     const selected = result.layers[selectedLayerIndex] || result.layers[0];
-    const rows = mode === 'selected' ? [selected] : result.layers;
+    const start = Math.max(1, Math.min(Math.round(range?.start ?? selectedLayerIndex + 1), result.layerCount));
+    const end = Math.max(start, Math.min(Math.round(range?.end ?? start), result.layerCount));
+    const rows = mode === 'selected' ? [selected] : mode === 'range' ? result.layers.slice(start - 1, end) : result.layers;
     return [header.map(quote).join(','), ...rows.map(layerLine)].join('\n');
   }
   const flat = as2d(result);

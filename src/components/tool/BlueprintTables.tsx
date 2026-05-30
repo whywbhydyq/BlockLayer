@@ -1,4 +1,6 @@
 'use client';
+// Legacy modular component retained for migration/reference.
+// ToolShell.tsx is the current primary homepage/tool-page workspace; see LEGACY_COMPONENTS.md before reintroducing this component.
 import { siteUrl } from '@/lib/seo/pages';
 import type { BlueprintResult, LayeredResult } from '@/lib/geometry';
 import { LayerSummaryTable } from './LayerSummaryTable';

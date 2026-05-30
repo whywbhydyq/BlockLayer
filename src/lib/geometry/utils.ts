@@ -72,7 +72,20 @@ export function rowsFromCells(cells: GridCell[]): RowSegment[] {
 export function centerWarning(size: number): BlueprintWarning {
   return size % 2 === 1
     ? { code: 'ODD_CENTER', message: 'Odd size: the blueprint has one exact center block.', severity: 'info' }
-    : { code: 'EVEN_CENTER', message: 'Even size: the center is between four blocks, so mirror carefully.', severity: 'info' };
+    : { code: 'EVEN_CENTER', message: 'Even size: the center falls between block grid lines, so mirror carefully.', severity: 'info' };
+}
+
+export function footprintCenterWarnings(width: number, height = width): BlueprintWarning[] {
+  const oddWidth = width % 2 === 1;
+  const oddHeight = height % 2 === 1;
+  if (oddWidth && oddHeight) {
+    return [{ code: 'ODD_CENTER', message: 'Odd footprint: the blueprint has one exact center block.', severity: 'info' }];
+  }
+  if (!oddWidth && !oddHeight) {
+    return [{ code: 'EVEN_CENTER', message: 'Even footprint: the center is between four blocks, so mark the 2×2 center area before mirroring.', severity: 'info' }];
+  }
+  const evenAxis = oddWidth ? 'height/Z' : 'width/X';
+  return [{ code: 'EVEN_CENTER', message: `Mixed odd/even footprint: the center is a line between two blocks on the ${evenAxis} axis.`, severity: 'info' }];
 }
 
 export function sizeWarnings(width: number, height: number, depth = 1): BlueprintWarning[] {

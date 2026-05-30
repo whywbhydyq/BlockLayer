@@ -4,6 +4,13 @@ BlockLayer is a printable Minecraft-style circle, ellipse, sphere, dome, and blo
 
 It is a pure-front-end Next.js App Router project. The geometry core is implemented as TypeScript pure functions and the interactive blueprint viewer uses Canvas 2D.
 
+
+## Source of truth and archived reports
+
+The active implementation contract is the current source code plus `scripts/audit.mjs`. Historical repair reports have been moved to `docs/archive/` and should be treated as superseded context, not as current acceptance criteria.
+
+`src/components/tool/ToolShell.tsx` is the server wrapper and `src/components/tool/BlueprintWorkspace.tsx` is the primary interactive homepage/tool-page workspace. Older modular tool components remain in `src/components/tool/` for migration/reference only; see `src/components/tool/LEGACY_COMPONENTS.md` before reconnecting them.
+
 ## MVP features
 
 - Circle generator with diameter/radius input, outline/filled mode, outline thickness, row segments, block counts, stacks, shulker estimate, PNG/SVG/CSV/print/copy/share link.
@@ -30,12 +37,11 @@ npm run lint
 npm run build
 ```
 
-In the sandbox used to create this package, `npm run test` and `npm run audit` passed. `npm install` timed out in the sandbox, so `npm run lint` and `npm run build` must be verified in a normal local/Vercel environment with dependencies installed.
+Current local verification for this package: `npx tsc --noEmit --pretty false --incremental false`, `npm run audit`, `npm run lint`, and `node --check scripts/*.mjs` passed. `npm run build` and all test commands were intentionally not executed in this repair pass.
 
 ## Deployment
 
 The project is designed for Vercel. `vercel.json` includes an `ignoreCommand` script to avoid wasting builds on stale commits.
-
 
 ## Domain and AdSense readiness
 
@@ -65,3 +71,51 @@ curl https://blocklayer.ymirtool.com/ads.txt
 ```
 
 Do not submit `.audit-dist`, `.next`, `node_modules`, or other generated build artifacts to the repository.
+
+## Latest homepage task-fit repair
+
+- Homepage and tool pages now render a real H1 inside the active tool workspace.
+- Header exposes Circle, Oval, Sphere, Dome, Block count, Presets, and Guides without removing any existing tool mode.
+- `/presets/[slug]` and `/guides/[slug]` remain real pages and are no longer catch-all redirected away.
+- Preset pages include preset inputs, example output, common mistakes, and related preset/tool links.
+- Guide pages include workflow steps, common mistakes, related guides, and JSON-LD HowTo schema.
+- Advanced thickness, shell, and dome options are folded into an advanced section so the first screen remains task-first.
+
+## Latest code audit repair
+
+- Layered CSV export now supports a selected layer range, matching the selected-range print workflow for sphere and dome builds.
+- Browser print output now hides the interactive workspace and prints only the generated print sheet, so selected layer ranges do not also print the live canvas view.
+- Presets and Guides index pages now emit ItemList JSON-LD in addition to their visible cards and breadcrumbs.
+- Legacy content components no longer link to the old `/tools/minecraft-circle-generator` URL.
+- Audit and smoke source checks were extended for selected-range CSV, print-sheet-only output, ItemList schema, and stale `/tools` links.
+
+## Latest routing and accessibility repair
+
+- Legacy size URLs such as `/minecraft-31-circle` now redirect to the restored preset pages instead of query-string tool URLs.
+- Legacy guide URLs such as `/how-to-build-a-circle-in-minecraft` now redirect to `/guides/...` pages instead of skipping the guide asset.
+- Legacy oval, sphere, dome, CSV, print, and block-count guide aliases now point at their matching restored preset or guide pages.
+- Root layout now includes a skip link to `#main`, and legal/support pages expose `id="main"` for keyboard users.
+- The CSV guide copy now describes all-layer, current-layer, and selected-range CSV workflows for layered blueprints.
+
+
+## Latest performance boundary repair
+
+- `ToolShell.tsx` is now a server wrapper that renders the H1, task intro, initial server-generated blueprint, and server-side content package.
+- `src/components/tool/BlueprintWorkspace.tsx` contains the interactive client workspace; `toolContent.ts` no longer enters that client graph.
+- Sphere and dome generation for client-side edits runs through `src/workers/blueprintWorker.ts`; the synchronous geometry functions are retained inside `src/lib/geometry/generateBlueprint.ts` for server/worker use.
+- PNG, SVG, CSV, and print helpers are imported on demand from click handlers instead of being static client imports.
+- The printable sheet is mounted only for a print job, then cleared after browser print, so large hidden layer tables do not stay in the normal DOM.
+
+## Latest CSS and legacy cleanup repair
+
+- `globals.css` now has explicit sections for foundation/site chrome, legacy component compatibility, the current task-first workspace, content assets, and print policy.
+- Builder-only print hiding is scoped to `.builder-page` so guide/index/legal content pages are not accidentally hidden by current workspace print rules.
+- Legacy modular tool components now carry file-level migration notes and are documented in `src/components/tool/LEGACY_COMPONENTS.md`.
+- Historical repair/audit Markdown reports are archived under `docs/archive/`; the current source plus `scripts/audit.mjs` is the source of truth.
+
+## Latest task-focused content package repair
+
+- `src/lib/content/toolContent.ts` centralizes page-specific content packages for home, circle, oval, sphere, dome, block count, pixel circle, center guide, alias landings, and preset pages.
+- `ToolContentSection.tsx` now renders below-workspace how-to steps, output explanations, tips, FAQ, and internal links from the active page task instead of one generic content block while `BlueprintWorkspace.tsx` stays focused on interaction.
+- Core tool pages pass explicit `contentKey` values so content remains aligned with the page query and tool capability while staying below the interactive workspace.
+- The first screen remains tool-first; additional content modules are placed after the workspace and do not block inputs, preview, exports, or Companion Mode.

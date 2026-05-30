@@ -1,4 +1,6 @@
 'use client';
+// Legacy modular component retained for migration/reference.
+// ToolShell.tsx is the current primary homepage/tool-page workspace; see LEGACY_COMPONENTS.md before reintroducing this component.
 import type { FormState } from './controlTypes';
 
 export type PresetPatch = Partial<Pick<FormState, 'shape' | 'diameter' | 'radius' | 'width' | 'height' | 'capHeight' | 'fillMode' | 'solidMode'>>;
