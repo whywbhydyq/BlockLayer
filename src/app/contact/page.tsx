@@ -14,6 +14,7 @@ export default function Page() {
       <section className="hero">
         <h1>Contact BlockLayer</h1>
         <p>For feedback about blueprint accuracy, accessibility, broken links, or site issues, contact the site owner through the YmirTool project channels.</p>
+        <p>Email: <a href="mailto:ymirtool@ymirtool.com">ymirtool@ymirtool.com</a></p>
         <p>When reporting a blueprint issue, include the shape, diameter or width/height, mode, layer number, and the page URL so the result can be reproduced.</p>
         <p>This tool runs in your browser. Do not send Minecraft account credentials, world files, server addresses, or private personal information.</p>
         <p><Link href="/minecraft-circle-generator">Return to the circle generator</Link></p>
