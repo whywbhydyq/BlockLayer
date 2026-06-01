@@ -22,9 +22,18 @@ for (const needle of [
   '<Footer />',
   'unofficial fan-made tool',
   'google-adsense-account',
-  'adsense-auto-ads'
+  'AdSenseAutoAds'
 ]) {
   assert(layout.includes(needle), `layout should include ${needle}`);
+}
+assert(!layout.includes('pagead2.googlesyndication.com'), 'layout should not globally load the AdSense script');
+assert(!layout.includes('adsbygoogle.js'), 'layout should not globally load adsbygoogle');
+const adsenseGate = read('src/components/ads/AdSenseAutoAds.tsx');
+for (const needle of ['usePathname', 'adsense-auto-ads', 'pagead2.googlesyndication.com', 'adsbygoogle.js']) {
+  assert(adsenseGate.includes(needle), `AdSense route gate should include ${needle}`);
+}
+for (const deniedPath of ['/about', '/privacy', '/terms', '/disclaimer', '/contact', '/404', '/_not-found']) {
+  assert(adsenseGate.includes(`'${deniedPath}'`), `AdSense route gate should deny ${deniedPath}`);
 }
 
 

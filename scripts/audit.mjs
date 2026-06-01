@@ -69,9 +69,19 @@ for (const needle of [
   '<Footer />',
   'unofficial fan-made tool',
   'google-adsense-account',
-  'adsense-auto-ads'
+  'AdSenseAutoAds'
 ]) {
   if (!layout.includes(needle)) failures.push(`Root layout missing shell/compliance item: ${needle}`);
+}
+if (layout.includes('pagead2.googlesyndication.com') || layout.includes('adsbygoogle.js')) {
+  failures.push('Root layout must not globally load the AdSense script');
+}
+const adsenseGate = read('src/components/ads/AdSenseAutoAds.tsx');
+for (const needle of ['usePathname', 'adsense-auto-ads', 'pagead2.googlesyndication.com', 'adsbygoogle.js']) {
+  if (!adsenseGate.includes(needle)) failures.push(`AdSense route gate missing: ${needle}`);
+}
+for (const deniedPath of ['/about', '/privacy', '/terms', '/disclaimer', '/contact', '/404', '/_not-found']) {
+  if (!adsenseGate.includes(`'${deniedPath}'`)) failures.push(`AdSense route gate should deny ${deniedPath}`);
 }
 
 
