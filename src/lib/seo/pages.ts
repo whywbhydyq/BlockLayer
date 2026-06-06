@@ -1,7 +1,12 @@
 import type { ShapeKind } from '@/lib/geometry';
 
 export const SITE_NAME = 'BlockLayer';
+export const SITE_AUTHOR = 'YmirTool';
 export const DEFAULT_SITE_URL = 'https://blocklayer.ymirtool.com';
+export const SITE_DESCRIPTION =
+  'BlockLayer is a free browser-based Minecraft-style blueprint generator for circles, ovals, spheres, domes, block counts, exports, and print-ready layer plans.';
+export const SITE_PUBLISHED_DATE = '2026-05-30';
+export const SITE_UPDATED_DATE = '2026-06-06';
 
 export function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL;
@@ -28,8 +33,11 @@ export type GuideConfig = {
   title: string;
   heading: string;
   description: string;
+  quickAnswer: string;
   paragraphs: string[];
   steps?: string[];
+  publishedAt?: string;
+  updatedAt?: string;
   link: string;
   linkLabel: string;
 };
@@ -38,10 +46,10 @@ export const toolPages: ToolPageConfig[] = [
   {
     path: '/minecraft-circle-generator',
     shape: 'circle',
-    title: 'Minecraft Circle Generator - Row Blueprint, Block Count & Exports',
+    title: 'Minecraft Circle Generator - Row Blueprint Tool',
     heading: 'Minecraft Circle Generator',
     description:
-      'Enter a diameter or radius to generate a Minecraft circle blueprint with row segments, center guides, block counts, PNG/SVG/CSV export, print output, and share links.'
+      'Generate a Minecraft circle blueprint from diameter or radius with row segments, center guides, block counts, PNG/SVG/CSV export, print, and share links.'
   },
   {
     path: '/minecraft-oval-generator',
@@ -54,10 +62,10 @@ export const toolPages: ToolPageConfig[] = [
   {
     path: '/minecraft-sphere-generator',
     shape: 'sphere',
-    title: 'Minecraft Sphere Generator - Layer-by-Layer Hollow or Solid Blueprint',
+    title: 'Minecraft Sphere Generator - Layer Blueprint Tool',
     heading: 'Minecraft Sphere Generator',
     description:
-      'Generate hollow or solid Minecraft spheres layer by layer with current-layer preview, row segments, block counts, selected-range CSV, print output, and share links.'
+      'Generate hollow or solid Minecraft spheres by layer with current-layer preview, row segments, block counts, selected-range CSV, print, and share links.'
   },
   {
     path: '/minecraft-dome-generator',
@@ -65,14 +73,15 @@ export const toolPages: ToolPageConfig[] = [
     title: 'Minecraft Dome Generator - Cap Height, Layers & Block Count',
     heading: 'Minecraft Dome Generator',
     description:
-      'Generate Minecraft dome blueprints with top/bottom caps, cap height, hollow/solid layers, block counts, PNG/SVG/CSV export, selected-layer print output, and share links.'
+      'Generate Minecraft dome blueprints with top or bottom caps, cap height, hollow or solid layers, block counts, PNG/SVG/CSV export, print output, and share links.'
   },
   {
     path: '/minecraft-block-count-calculator',
     shape: 'circle',
-    title: 'Minecraft Block Count Calculator - Stacks, Shulkers & Blueprint Totals',
+    title: 'Minecraft Block Count Calculator - Stacks & Totals',
     heading: 'Minecraft Block Count Calculator',
-    description: 'Calculate Minecraft blueprint totals, 64-stacks, leftover blocks, current-layer counts, and shulker-style estimates for circles, ovals, spheres, and domes.'
+    description:
+      'Calculate Minecraft blueprint totals, 64-stacks, leftovers, current-layer counts, and shulker-style estimates for circles, ovals, spheres, and domes.'
   }
 ];
 
@@ -113,7 +122,7 @@ export const presetPages: PresetConfig[] = [
     diameter,
     title: `${diameter} Block Minecraft Sphere Blueprint`,
     heading: `${diameter} Block Minecraft Sphere Blueprint`,
-    description: `Open a ${diameter} block Minecraft sphere preset with layer-by-layer row segments, counts, and PNG/SVG/CSV exports.`
+    description: `Open a ${diameter} block Minecraft sphere preset with layer-by-layer row segments, block counts, hollow shell defaults, print output, and PNG/SVG/CSV exports.`
   })),
   ...domePresets.map((diameter) => ({
     slug: `minecraft-${diameter}-dome`,
@@ -122,7 +131,7 @@ export const presetPages: PresetConfig[] = [
     diameter,
     title: `${diameter} Block Minecraft Dome Blueprint`,
     heading: `${diameter} Block Minecraft Dome Blueprint`,
-    description: `Open a ${diameter} block Minecraft dome preset with layer tables, cap height controls, counts, and PNG/SVG/CSV exports.`
+    description: `Open a ${diameter} block Minecraft dome preset with layer tables, cap height controls, block counts, hollow defaults, print output, and PNG/SVG/CSV exports.`
   }))
 ];
 
@@ -132,7 +141,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/how-to-build-a-circle-in-minecraft',
     title: 'How to Build a Circle in Minecraft',
     heading: 'How to Build a Circle in Minecraft',
-    description: 'A practical workflow for building Minecraft circles from a center point, axis marks, and row segments.',
+    description: 'Learn how to build Minecraft circles from a center point with axis marks, row segments, block counts, outline or filled modes, and printable blueprint outputs.',
+    quickAnswer: 'Start a Minecraft circle by choosing the full outside diameter, marking the correct odd or even center, then building each listed row segment symmetrically from the axis marks.',
     paragraphs: [
       'Start by choosing an odd or even diameter. Odd diameters have one center block; even diameters need a shared center line or 2×2 center area.',
       'Mark the X and Z axes first, then build each row from the segment table. The table keeps long rows accurate without counting every block from memory.'
@@ -152,7 +162,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/odd-even-minecraft-circle-centers',
     title: 'Odd vs Even Minecraft Circle Centers',
     heading: 'Odd vs Even Minecraft Circle Centers',
-    description: 'Understand single-block centers, center lines, and 2×2 center areas before building symmetrical blueprints.',
+    description: 'Understand odd and even Minecraft circle centers, including single-block centers, center lines, 2×2 center areas, row symmetry, and blueprint bounds.',
+    quickAnswer: 'Odd footprints use one center block, even footprints use a center line or 2×2 center area, and mixed ovals need separate center handling for each axis before rows are mirrored.',
     paragraphs: [
       'Odd footprints mirror around one block. Even footprints mirror around grid lines between blocks, so the center marker is different.',
       'For mixed odd/even ovals, only one axis sits between two blocks. The builder labels this case separately to avoid treating it like a 2×2 center.'
@@ -172,7 +183,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/how-to-build-an-oval-in-minecraft',
     title: 'How to Build an Oval in Minecraft',
     heading: 'How to Build an Oval in Minecraft',
-    description: 'Use width and height inputs to build oval and ellipse footprints with row-by-row ranges.',
+    description: 'Use width and height inputs to build Minecraft oval and ellipse footprints with mixed center parity, row-by-row ranges, block counts, and exports.',
+    quickAnswer: 'Build a Minecraft oval by setting the full width and height first, marking the long and short axes, then following each row range instead of stretching a circle by eye.',
     paragraphs: [
       'Choose the full width and height first, then check whether either dimension is even. Mixed parity changes the center-line setup.',
       'Use the row table from top to bottom or bottom to top; each row lists continuous X ranges for the selected Z coordinate.'
@@ -192,7 +204,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/how-to-build-a-sphere-in-minecraft',
     title: 'How to Build a Sphere in Minecraft',
     heading: 'How to Build a Sphere in Minecraft',
-    description: 'Build Minecraft spheres layer by layer with hollow or solid settings and previous-layer ghosting.',
+    description: 'Build Minecraft spheres layer by layer with hollow or solid settings, shell thickness, previous-layer ghosting, row segments, block counts, and CSV output.',
+    quickAnswer: 'A Minecraft sphere is built as stacked circular layers; choose hollow or solid mode, confirm shell thickness, then complete each row in one layer before moving to the next.',
     paragraphs: [
       'A sphere blueprint is a stack of circular layers. Build one layer completely, then move to the next layer in the selected direction.',
       'Hollow mode keeps the shell. Solid mode fills every included voxel, which is useful for estimating mass and material needs.'
@@ -212,7 +225,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/how-to-build-a-dome-in-minecraft',
     title: 'How to Build a Dome in Minecraft',
     heading: 'How to Build a Dome in Minecraft',
-    description: 'Plan Minecraft domes with cap height, top or bottom half selection, and layer tables.',
+    description: 'Plan Minecraft domes with cap height, top or bottom half selection, hollow or solid layer tables, block counts, print output, and CSV export.',
+    quickAnswer: 'A Minecraft dome is a sphere cap, so set the diameter, select the top or bottom half, choose cap height, then build the generated layer rings in order.',
     paragraphs: [
       'A dome is a selected half or cap of a sphere. Set the diameter, choose the top or bottom half, and clamp the cap height to the build you want.',
       'Use the layer slider to inspect each ring before building. The CSV export is useful for larger domes.'
@@ -232,7 +246,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/minecraft-blueprint-csv-export',
     title: 'Minecraft Blueprint CSV Export',
     heading: 'Minecraft Blueprint CSV Export',
-    description: 'Use CSV exports to save row segments and layer summaries for large block builds.',
+    description: 'Use Minecraft blueprint CSV exports to save exact row segments, layer summaries, block counts, selected ranges, and offline build references.',
+    quickAnswer: 'Use CSV export when exact row ranges, layer numbers, block counts, or selected layer ranges matter more than a single visual screenshot.',
     paragraphs: [
       'CSV files preserve exact row ranges and block counts. For spheres and domes, export all layers, the current layer, or the same selected layer range you plan to print.',
       'Use CSV when the on-screen row table becomes too long to read comfortably or when you need a selected layer range for a large sphere or dome.'
@@ -250,9 +265,10 @@ export const guidePages: GuideConfig[] = [
   {
     slug: 'minecraft-blueprint-printing',
     path: '/guides/minecraft-blueprint-printing',
-    title: 'Print Minecraft Blueprints',
+    title: 'Print Minecraft Blueprints - Layer & Row Guide',
     heading: 'Print Minecraft Blueprints',
-    description: 'Print the current blueprint view and keep row segments available while building offline.',
+    description: 'Print Minecraft blueprints from BlockLayer with fit-to-screen views, high contrast grid output, selected layer ranges, row segments, and export fallbacks.',
+    quickAnswer: 'Use print output for a build-session reference, but switch to SVG or CSV when the blueprint is too large for one readable browser print sheet.',
     paragraphs: [
       'Fit the blueprint before printing so the current canvas is centered. For very large builds, export SVG or CSV instead of relying on a single page.',
       'Use high contrast mode when printing on low-quality paper or when the grid needs stronger separation.'
@@ -272,7 +288,8 @@ export const guidePages: GuideConfig[] = [
     path: '/guides/minecraft-block-counts-stacks-shulkers',
     title: 'Minecraft Block Counts, Stacks, and Shulkers',
     heading: 'Minecraft Block Counts, Stacks, and Shulkers',
-    description: 'Convert blueprint block totals into 64-stacks and shulker-box estimates.',
+    description: 'Convert Minecraft blueprint block totals into 64-stacks, leftover blocks, rounded stacks, shulker-style estimates, layer counts, and material checks.',
+    quickAnswer: 'Calculate block totals after choosing outline, filled, hollow, or solid mode, then convert the final total into full stacks, leftovers, and shulker-style estimates.',
     paragraphs: [
       'Every generated blueprint reports total blocks, full stacks, leftover blocks, rounded stacks, and shulker estimates.',
       'Filled shapes and solid 3D builds require many more blocks than outlines and hollow shells, so check the mode before collecting materials.'
@@ -308,5 +325,15 @@ export const staticPages = [
   '/disclaimer',
   '/contact'
 ];
+
+export function contentLastModified(path: string): Date {
+  if (path === '/') return new Date(`${SITE_UPDATED_DATE}T00:00:00.000Z`);
+  if (path.startsWith('/guides/')) return new Date('2026-06-05T00:00:00.000Z');
+  if (path.startsWith('/presets/')) return new Date('2026-06-04T00:00:00.000Z');
+  if (path === '/privacy' || path === '/terms' || path === '/disclaimer' || path === '/contact' || path === '/about') {
+    return new Date('2026-05-31T00:00:00.000Z');
+  }
+  return new Date(`${SITE_UPDATED_DATE}T00:00:00.000Z`);
+}
 
 export const allContentPaths = [...staticPages, ...presetPages.map((page) => page.path), ...guidePages.map((page) => page.path)];

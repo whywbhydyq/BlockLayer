@@ -6,7 +6,7 @@ import { softwareApplicationSchema } from '@/lib/seo/schema';
 export const metadata: Metadata = {
   title: 'Minecraft Pixel Circle Generator - Row Blueprint & Exports',
   description:
-    'Generate a pixel-style Minecraft circle with block-center approximation, row segments, center type, block counts, PNG/SVG/CSV export, and printable blueprint output.',
+    'Generate a pixel-style Minecraft circle with block-center approximation, row segments, center type, block counts, PNG/SVG/CSV export, and print output.',
   alternates: { canonical: '/minecraft-pixel-circle' }
 };
 

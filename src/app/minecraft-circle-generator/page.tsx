@@ -4,9 +4,9 @@ import { ToolShell } from '@/components/tool/ToolShell';
 import { softwareApplicationSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Circle Generator - Row Blueprint, Block Count & Exports',
+  title: 'Minecraft Circle Generator - Row Blueprint Tool',
   description:
-    'Enter a diameter or radius to generate a Minecraft circle blueprint with row segments, center guides, block counts, PNG/SVG/CSV export, print output, and share links.',
+    'Generate a Minecraft circle blueprint from diameter or radius with row segments, center guides, block counts, PNG/SVG/CSV export, print, and share links.',
   alternates: { canonical: '/minecraft-circle-generator' }
 };
 

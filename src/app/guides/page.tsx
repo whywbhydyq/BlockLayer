@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { JsonLd } from '@/components/content/JsonLd';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { guidePages } from '@/lib/seo/pages';
-import { itemListSchema, websiteSchema } from '@/lib/seo/schema';
+import { collectionPageSchema, itemListSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
   title: 'Minecraft Blueprint Guides - Circles, Ovals, Spheres & Domes',
@@ -16,7 +16,14 @@ export default function Page() {
   return (
     <main id="main" className="page-wrap guides-index-page">
       <Breadcrumbs items={[{ name: 'Guides', path: '/guides' }]} />
-      <JsonLd data={websiteSchema()} />
+      <JsonLd
+        data={collectionPageSchema(
+          '/guides',
+          'Minecraft Blueprint Guides',
+          metadata.description as string,
+          guidePages.map((guide) => ({ name: guide.heading, path: guide.path }))
+        )}
+      />
       <JsonLd
         data={itemListSchema(
           'Minecraft Blueprint Guides',

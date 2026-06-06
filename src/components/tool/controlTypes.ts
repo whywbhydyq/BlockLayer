@@ -28,6 +28,7 @@ export type ToolShellProps = {
   initialWidth?: number;
   initialHeight?: number;
   title?: string;
+  introHeadingLevel?: 1 | 2;
   contentKey?: ToolContentKey;
 };
 

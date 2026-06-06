@@ -1,7 +1,5 @@
-import { JsonLd } from '@/components/content/JsonLd';
 import { getToolContentPackage } from '@/lib/content/toolContent';
 import { generateBlueprint } from '@/lib/geometry/generateBlueprint';
-import { faqSchema } from '@/lib/seo/schema';
 import { initialFormState, type ToolShellProps } from './controlTypes';
 import { BlueprintWorkspace } from './BlueprintWorkspace';
 import { ToolContentSection } from './ToolContentSection';
@@ -30,13 +28,14 @@ export function ToolShell(props: ToolShellProps) {
   const initialResult = generateBlueprint(initialState);
   const contentPackage = getToolContentPackage(props.contentKey, initialState.shape);
   const introTitle = props.title || 'Minecraft Circle Generator & Blueprint Builder';
+  const IntroHeading = props.introHeadingLevel === 2 ? 'h2' : 'h1';
 
   return (
     <section className="builder-shell" aria-label={introTitle}>
       <header className="builder-intro">
         <div>
           <span className="eyebrow">Minecraft blueprint generator</span>
-          <h1>{introTitle}</h1>
+          <IntroHeading>{introTitle}</IntroHeading>
           <p>{contentPackage.intro} The blueprint updates instantly as you edit values.</p>
         </div>
         <nav className="builder-intro-actions" aria-label="Core blueprint tools">
@@ -54,7 +53,6 @@ export function ToolShell(props: ToolShellProps) {
           </a>
         </nav>
       </header>
-      {contentPackage.faq.length > 0 && <JsonLd data={faqSchema(contentPackage.faq)} />}
       <BlueprintWorkspace {...props} initialResult={initialResult} />
       <ToolContentSection contentPackage={contentPackage} />
     </section>

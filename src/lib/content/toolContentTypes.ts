@@ -14,6 +14,7 @@ export type ToolContentKey =
 export type ToolContentPackage = {
   key: ToolContentKey;
   intro: string;
+  citationSummary: string;
   howToTitle: string;
   howToSteps: string[];
   outputsTitle: string;

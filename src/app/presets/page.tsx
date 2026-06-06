@@ -3,12 +3,12 @@ import Link from 'next/link';
 import { JsonLd } from '@/components/content/JsonLd';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { presetPages } from '@/lib/seo/pages';
-import { itemListSchema, websiteSchema } from '@/lib/seo/schema';
+import { collectionPageSchema, itemListSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Blueprint Presets - Circles, Ovals, Spheres & Domes',
+  title: 'Minecraft Blueprint Presets - Circles, Ovals & Domes',
   description:
-    'Open ready-made Minecraft blueprint presets for common circle diameters, oval sizes, sphere layers, and dome builds with rows, counts, exports, and print output.',
+    'Open ready-made Minecraft blueprint presets for common circle diameters, oval sizes, sphere layers, and dome builds with rows, counts, exports, and print.',
   alternates: { canonical: '/presets' }
 };
 
@@ -23,7 +23,14 @@ export default function Page() {
   return (
     <main id="main" className="page-wrap presets-index-page">
       <Breadcrumbs items={[{ name: 'Presets', path: '/presets' }]} />
-      <JsonLd data={websiteSchema()} />
+      <JsonLd
+        data={collectionPageSchema(
+          '/presets',
+          'Minecraft Blueprint Presets',
+          metadata.description as string,
+          presetPages.map((page) => ({ name: page.heading, path: page.path }))
+        )}
+      />
       <JsonLd
         data={itemListSchema(
           'Minecraft Blueprint Presets',
