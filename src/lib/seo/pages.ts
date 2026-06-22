@@ -6,7 +6,7 @@ export const DEFAULT_SITE_URL = 'https://blocklayer.ymirtool.com';
 export const SITE_DESCRIPTION =
   'BlockLayer is a free browser-based Minecraft-style blueprint generator for circles, ovals, spheres, domes, block counts, exports, and print-ready layer plans.';
 export const SITE_PUBLISHED_DATE = '2026-05-30';
-export const SITE_UPDATED_DATE = '2026-06-06';
+export const SITE_UPDATED_DATE = '2026-06-22';
 
 export function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL;
@@ -62,18 +62,18 @@ export const toolPages: ToolPageConfig[] = [
   {
     path: '/minecraft-sphere-generator',
     shape: 'sphere',
-    title: 'Minecraft Sphere Generator - Layer Blueprint Tool',
+    title: 'Minecraft Sphere Generator - Layer Blueprint Calculator',
     heading: 'Minecraft Sphere Generator',
     description:
-      'Generate hollow or solid Minecraft spheres by layer with current-layer preview, row segments, block counts, selected-range CSV, print, and share links.'
+      'Use a Minecraft sphere generator and calculator for hollow or solid layer blueprints with row segments, block counts, CSV, print, and share links.'
   },
   {
     path: '/minecraft-dome-generator',
     shape: 'dome',
-    title: 'Minecraft Dome Generator - Cap Height, Layers & Block Count',
+    title: 'Minecraft Dome Generator - Cap Height Blueprint',
     heading: 'Minecraft Dome Generator',
     description:
-      'Generate Minecraft dome blueprints with top or bottom caps, cap height, hollow or solid layers, block counts, PNG/SVG/CSV export, print output, and share links.'
+      'Generate Minecraft dome blueprints by diameter and cap height with top/bottom half, hollow or solid layers, block counts, CSV, print, and share links.'
   },
   {
     path: '/minecraft-block-count-calculator',

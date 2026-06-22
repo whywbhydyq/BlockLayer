@@ -4,9 +4,9 @@ import { ToolShell } from '@/components/tool/ToolShell';
 import { softwareApplicationSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Dome Generator - Cap Height, Layers & Block Count',
+  title: 'Minecraft Dome Generator - Cap Height Blueprint',
   description:
-    'Generate Minecraft dome blueprints with top or bottom caps, cap height, hollow or solid layers, block counts, PNG/SVG/CSV export, print output, and share links.',
+    'Generate Minecraft dome blueprints by diameter and cap height with top/bottom half, hollow or solid layers, block counts, CSV, print, and share links.',
   alternates: { canonical: '/minecraft-dome-generator' }
 };
 

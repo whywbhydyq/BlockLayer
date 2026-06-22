@@ -135,9 +135,10 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
   },
   sphere: {
     key: 'sphere',
-    intro: 'Use the sphere page when you need a full 3D build split into layers, with hollow or solid mode and layer-by-layer row ranges.',
+    intro:
+      'Use this Minecraft sphere generator as a sphere maker or calculator when you need a full 3D build split into layers, with hollow or solid mode and row ranges.',
     citationSummary:
-      'The Minecraft sphere generator turns a diameter or radius into a layer-by-layer 3D blueprint with hollow or solid modes, shell thickness, previous-layer ghosting, current-layer rows, block totals, stack estimates, selected-range CSV, print sheets, and share links. It is designed for large builds that must be completed one Y layer at a time.',
+      'The Minecraft sphere generator works as a sphere maker and block calculator: it turns a diameter or radius into a layer-by-layer 3D blueprint with hollow or solid modes, shell thickness, previous-layer ghosting, current-layer rows, block totals, stack estimates, selected-range CSV, print sheets, and share links.',
     howToTitle: 'Sphere build workflow',
     howToSteps: [
       'Enter the full sphere diameter or switch to radius input.',
@@ -159,6 +160,7 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
     ],
     faq: [
       ['What is previous-layer ghosting?', 'It lightly shows the neighboring layer so you can compare how the shell changes as you build upward or downward.'],
+      ['Is this a Minecraft sphere calculator?', 'Yes. It calculates each layer, row range, block count, stacks, and export file from the diameter or radius you enter.'],
       ['When should I use selected-range CSV?', 'Use it when a large sphere is easier to split into sessions, such as layers 1–10 today and 11–20 later.'],
       ['Does shell thickness affect block count?', 'Yes. Hollow shells with thicker walls include more blocks than a one-block shell.']
     ],
@@ -170,15 +172,17 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
     intentLinks: [
       { label: 'Layer-by-layer sphere blueprint', href: '/minecraft-layer-by-layer-sphere', description: 'Use a dedicated landing page for staged sphere builds.' },
       { label: 'Hollow Minecraft sphere generator', href: '/minecraft-sphere-generator', description: 'Switch between hollow shell and solid material estimates.' },
+      { label: 'Minecraft sphere calculator', href: '/minecraft-sphere-generator', description: 'Calculate layer rows, total blocks, stacks, and selected export ranges from one diameter.' },
       { label: '31 block sphere preset', href: '/presets/minecraft-31-sphere', description: 'Open a common medium sphere with editable layers.' },
       { label: 'Selected-range CSV export', href: '/guides/minecraft-blueprint-csv-export', description: 'Export only the layers you plan to build in one session.' }
     ]
   },
   dome: {
     key: 'dome',
-    intro: 'Use the dome page when you only need the top or bottom part of a sphere, with cap height and selected-layer output.',
+    intro:
+      'Use this Minecraft dome generator as a dome blueprint calculator when you only need the top or bottom part of a sphere, with cap height and selected-layer output.',
     citationSummary:
-      'The Minecraft dome generator creates cap-aware blueprints for top or bottom sphere sections, including cap height, hollow or solid mode, shell thickness, layer rows, block totals, selected-range printing, CSV exports, and shareable settings. Use it for roofs, glass domes, observatories, half-spheres, and shells where only part of a sphere is needed.',
+      'The Minecraft dome generator creates cap-aware blueprint calculations for top or bottom sphere sections, including cap height, hollow or solid mode, shell thickness, layer rows, block totals, selected-range printing, CSV exports, and shareable settings. Use it for roofs, glass domes, observatories, half-spheres, and shells where only part of a sphere is needed.',
     howToTitle: 'Dome build workflow',
     howToSteps: [
       'Enter the full source sphere diameter.',
@@ -200,6 +204,7 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
     ],
     faq: [
       ['What does cap height control?', 'It limits how many layers of the selected dome half are included in the blueprint.'],
+      ['Is this a Minecraft dome calculator?', 'Yes. It calculates dome layers, row ranges, cap height output, block totals, and exports from the diameter and half selection.'],
       ['Can I print only part of a dome?', 'Yes. Choose Selected range, enter the layer numbers, then print the generated sheet.'],
       ['Should I use hollow or solid?', 'Use hollow for shells and roofs; use solid when you need a filled mass or a conservative material estimate.']
     ],
@@ -210,6 +215,7 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
     ],
     intentLinks: [
       { label: 'Minecraft dome blueprint', href: '/minecraft-dome-blueprint', description: 'Use the focused dome page for cap height and print-ready layer rows.' },
+      { label: 'Minecraft dome generator by cap height', href: '/minecraft-dome-generator', description: 'Set diameter, half, and cap height before exporting layer rows.' },
       { label: '51 block dome preset', href: '/presets/minecraft-51-dome', description: 'Open a larger dome preset for roofs and observatories.' },
       { label: 'Print selected dome layers', href: '/guides/minecraft-blueprint-printing', description: 'Print only the layer range needed for the current build session.' },
       { label: 'Dome block count guide', href: '/guides/minecraft-block-counts-stacks-shulkers', description: 'Convert blueprint totals into stacks and shulker-style planning.' }
@@ -340,9 +346,10 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
   },
   'layered-sphere': {
     key: 'layered-sphere',
-    intro: 'This landing page is tuned for users who specifically need a sphere split into buildable layers instead of a flat circle screenshot.',
+    intro:
+      'This landing page is tuned for layer-by-layer Minecraft sphere generator searches where the sphere needs buildable layers instead of a flat circle screenshot.',
     citationSummary:
-      'The layer-by-layer sphere page is a focused entry point for Minecraft sphere builds that need staged Y-level output. It preloads a sphere workspace with hollow or solid controls, ghost-layer comparison, current-layer row segments, layer summaries, selected-range CSV, selected-range print, and share links for multi-session builds.',
+      'The layer-by-layer sphere page is a focused entry point for Minecraft sphere generator searches that need staged Y-level output. It preloads a sphere workspace with hollow or solid controls, ghost-layer comparison, current-layer row segments, layer summaries, selected-range CSV, selected-range print, and share links for multi-session builds.',
     howToTitle: 'Layer-by-layer sphere workflow',
     howToSteps: [
       'Set the diameter and choose hollow or solid mode.',
@@ -377,7 +384,7 @@ const packages: Record<ToolContentKey, ToolContentPackage> = {
   },
   'dome-blueprint': {
     key: 'dome-blueprint',
-    intro: 'This landing page is tuned for dome blueprint searches: cap height, selected half, row segments, and print-ready layers.',
+    intro: 'This landing page is tuned for Minecraft dome generator and dome blueprint searches: cap height, selected half, row segments, and print-ready layers.',
     citationSummary:
       'The Minecraft dome blueprint page is a focused entry point for cap-height and half-sphere builds. It preloads dome controls for source diameter, top or bottom half, hollow or solid mode, shell thickness, current-layer rows, selected-range print output, CSV exports, and share URLs for roof and observatory-style projects.',
     howToTitle: 'Dome blueprint workflow',

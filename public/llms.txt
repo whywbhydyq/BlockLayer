@@ -4,8 +4,8 @@
 ## Primary tools
 - [Minecraft Circle Generator](https://blocklayer.ymirtool.com/minecraft-circle-generator): Create row-by-row Minecraft circle blueprints with center guides, block counts, PNG/SVG/CSV export, print output, and share links.
 - [Minecraft Oval Generator](https://blocklayer.ymirtool.com/minecraft-oval-generator): Generate ellipse and oval footprints from separate width and height values with mixed odd/even center guidance.
-- [Minecraft Sphere Generator](https://blocklayer.ymirtool.com/minecraft-sphere-generator): Build hollow or solid Minecraft spheres layer by layer with current-layer rows, total blocks, stacks, and selected-range CSV output.
-- [Minecraft Dome Generator](https://blocklayer.ymirtool.com/minecraft-dome-generator): Plan top or bottom dome caps with cap height, hollow or solid mode, layer summaries, and print-ready row ranges.
+- [Minecraft Sphere Generator](https://blocklayer.ymirtool.com/minecraft-sphere-generator): Use a sphere generator, maker, and calculator for hollow or solid Minecraft spheres with layer rows, total blocks, stacks, and selected-range CSV output.
+- [Minecraft Dome Generator](https://blocklayer.ymirtool.com/minecraft-dome-generator): Use a dome generator and blueprint calculator for top or bottom caps with cap height, hollow or solid mode, layer summaries, and print-ready row ranges.
 - [Minecraft Block Count Calculator](https://blocklayer.ymirtool.com/minecraft-block-count-calculator): Convert blueprint totals into stacks of 64, leftover blocks, and shulker-style estimates.
 - [Minecraft Pixel Circle Generator](https://blocklayer.ymirtool.com/minecraft-pixel-circle): Compare pixel-circle style footprints with explicit row ranges and reproducible center rules.
 - [Odd and Even Minecraft Circle Centers](https://blocklayer.ymirtool.com/odd-even-minecraft-circle-centers): Check single-block centers, center lines, and 2x2 center starts before building.
@@ -28,7 +28,7 @@
 - BlockLayer runs normal blueprint calculations in the browser and does not require accounts, world uploads, Minecraft credentials, or server access.
 - The site is independent and fan-made; it is not an official Minecraft, Mojang, or Microsoft product.
 - Blueprint outputs include row segments, center parity notes, layer summaries, total block counts, stacks, PNG export, SVG export, CSV export, print output, and share URLs.
-- 3D sphere and dome pages support hollow shells, solid material estimates, shell thickness, build direction, current layer preview, and selected layer export ranges.
+- 3D sphere and dome pages support hollow shells, solid material estimates, shell thickness, build direction, current layer preview, selected layer export ranges, and calculator-style block totals.
 - Canonical URL inventory is published at https://blocklayer.ymirtool.com/sitemap.xml.
 
 
