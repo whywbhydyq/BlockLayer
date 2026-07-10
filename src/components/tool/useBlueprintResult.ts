@@ -40,14 +40,12 @@ export function useBlueprintResult(state: BuilderState, initialResult: Blueprint
   }, [state]);
 
   useEffect(() => {
-    if (!isLayeredShape(state.shape)) {
-      setPending(false);
-      setError('');
-      return;
-    }
+    if (!isLayeredShape(state.shape)) return;
 
     const jobId = jobIdRef.current + 1;
     jobIdRef.current = jobId;
+    // Starting a worker request intentionally updates request state from this synchronization effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPending(true);
     setError('');
 
@@ -85,7 +83,7 @@ export function useBlueprintResult(state: BuilderState, initialResult: Blueprint
 
   return {
     result: flatResult || workerResult || initialResult,
-    pending,
-    error
+    pending: isLayeredShape(state.shape) ? pending : false,
+    error: isLayeredShape(state.shape) ? error : ''
   };
 }

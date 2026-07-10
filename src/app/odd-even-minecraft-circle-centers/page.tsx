@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Odd vs Even Minecraft Circle Center Guide',
   description:
     'Compare odd and even Minecraft circle centers, including single-block centers, between-two-block center lines, 2×2 center areas, row segments, and bounds.',
+  robots: { index: false, follow: true },
   alternates: { canonical: '/odd-even-minecraft-circle-centers' }
 };
 

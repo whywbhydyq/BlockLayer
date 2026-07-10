@@ -5,7 +5,6 @@ import { JsonLd } from '@/components/content/JsonLd';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { ToolShell } from '@/components/tool/ToolShell';
 import { generateCircle, generateDome, generateEllipse, generateSphere, type BlueprintResult, type LayeredResult } from '@/lib/geometry';
-import { pageMetadata } from '@/lib/seo/metadata';
 import { presetPages, type PresetConfig } from '@/lib/seo/pages';
 import { softwareApplicationSchema } from '@/lib/seo/schema';
 
@@ -17,10 +16,16 @@ function findPreset(slug: string) {
   return presetPages.find((page) => page.slug === slug);
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const page = findPreset(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const page = findPreset(slug);
   if (!page) return {};
-  return pageMetadata(page.title, page.description, page.path);
+  return {
+    title: page.title,
+    description: page.description,
+    alternates: { canonical: page.path },
+    robots: { index: false, follow: true }
+  };
 }
 
 function presetResult(page: PresetConfig): BlueprintResult {
@@ -71,44 +76,13 @@ function relatedPresets(page: PresetConfig) {
   return presetPages.filter((candidate) => candidate.slug !== page.slug && candidate.shape === page.shape).slice(0, 4);
 }
 
-function presetGuidance(page: PresetConfig, result: BlueprintResult) {
-  const size = inputSummary(page);
-  const blockTotal = result.totalBlocks.toLocaleString();
-  if (page.shape === 'ellipse') {
-    return {
-      bestUse: `Use this ${size} oval preset for builds that need a longer axis than a circle, such as racetracks, stadium floors, paths, farms, or portal frames.`,
-      verification: 'Mark the long axis first, then confirm the widest row appears on the center line before mirroring either end of the oval.',
-      exportTip: `Export CSV when the ${size} row list is easier to follow as exact Z rows and X ranges than as a zoomed-out preview.`
-    };
-  }
-  if (page.shape === 'sphere') {
-    return {
-      bestUse: `Use this ${size} sphere preset for shells, ornaments, planets, and floating bases where each Y layer needs a separate row table.`,
-      verification: 'Build one layer completely before moving upward, and compare the previous-layer ghost if the shell starts to drift off center.',
-      exportTip: `The hollow preset currently estimates ${blockTotal} blocks; use selected-layer CSV or print when splitting the sphere into build sessions.`
-    };
-  }
-  if (page.shape === 'dome') {
-    return {
-      bestUse: `Use this ${size} dome preset for roofs, observatories, glass caps, arena covers, and bases that need a controlled hemisphere or cap.`,
-      verification: 'Check top/bottom half and cap height before exporting so the first printed layer matches the direction you plan to build.',
-      exportTip: `The hollow dome preset currently estimates ${blockTotal} blocks; export a selected layer range when the dome spans multiple sessions.`
-    };
-  }
-  return {
-    bestUse: `Use this ${size} circle preset for tower bases, arena floors, walls, fountains, farms, and any flat build that needs a repeatable outside diameter.`,
-    verification: 'Place the center marker and X/Z axes before copying row segments, especially when the diameter uses a between-block center.',
-    exportTip: `The outline preset currently estimates ${blockTotal} blocks; use SVG for scalable print and CSV when exact row ranges matter.`
-  };
-}
-
-export default function Page({ params }: { params: { slug: string } }) {
-  const page = findPreset(params.slug);
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const page = findPreset(slug);
   if (!page) notFound();
   const result = presetResult(page);
   const layered = isLayered(result);
   const related = relatedPresets(page);
-  const guidance = presetGuidance(page, result);
 
   return (
     <main id="main" className="builder-page">
@@ -159,15 +133,6 @@ export default function Page({ params }: { params: { slug: string } }) {
               <dt>Center</dt>
               <dd>{result.centerType === 'single-block' ? 'single center block' : 'between blocks / center line'}</dd>
             </dl>
-          </div>
-
-          <div className="preset-guidance">
-            <h3>How to use this preset</h3>
-            <ul>
-              <li>{guidance.bestUse}</li>
-              <li>{guidance.verification}</li>
-              <li>{guidance.exportTip}</li>
-            </ul>
           </div>
 
           <div className="preset-mistakes">

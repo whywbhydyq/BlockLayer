@@ -2,26 +2,6 @@
 const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  outputFileTracing: false,
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()' },
-          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          {
-            key: 'Content-Security-Policy-Report-Only',
-            value:
-              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.google-analytics.com; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com"
-          }
-        ]
-      }
-    ];
-  },
   async redirects() {
     return [
       { source: '/circle-generator', destination: '/minecraft-circle-generator', permanent: true },
@@ -60,7 +40,6 @@ const nextConfig = {
       { source: '/how-to-build-a-dome-in-minecraft', destination: '/guides/how-to-build-a-dome-in-minecraft', permanent: true },
       { source: '/minecraft-blueprint-csv-export', destination: '/guides/minecraft-blueprint-csv-export', permanent: true },
       { source: '/minecraft-blueprint-printing', destination: '/guides/minecraft-blueprint-printing', permanent: true },
-      { source: '/guides/print-minecraft-blueprints', destination: '/guides/minecraft-blueprint-printing', permanent: true },
       { source: '/minecraft-block-counts-stacks-shulkers', destination: '/guides/minecraft-block-counts-stacks-shulkers', permanent: true }
     ];
   }

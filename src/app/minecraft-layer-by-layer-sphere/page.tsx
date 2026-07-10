@@ -6,7 +6,8 @@ import { softwareApplicationSchema } from '@/lib/seo/schema';
 export const metadata: Metadata = {
   title: 'Minecraft Layer-by-Layer Sphere Blueprint Generator',
   description:
-    'Generate Minecraft sphere blueprints layer by layer with hollow or solid modes, ghost layers, row segments, block totals, CSV, print, and share links.',
+    'Generate Minecraft sphere blueprints one layer at a time with hollow or solid modes, previous-layer ghosting, row segments, block counts, PNG/SVG/CSV export, selected-layer printing, and share links.',
+  robots: { index: false, follow: true },
   alternates: { canonical: '/minecraft-layer-by-layer-sphere' }
 };
 

@@ -195,6 +195,8 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nextShape = validShape(params.get('shape'), state.shape);
+    // Query parameters are only available after hydration; this one-time sync is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState((previous) => ({
       ...previous,
       shape: nextShape,
@@ -250,48 +252,29 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
     };
   }, [state]);
 
-  useEffect(() => {
+  function resetBuildProgress() {
     setLayerIndex(0);
     setCurrentRowIndex(0);
     setCompletedRows(new Set());
-  }, [
-    result.title,
-    result.dimensions.width,
-    result.dimensions.height,
-    result.dimensions.depth,
-    state.fillMode,
-    state.thickness,
-    state.solidMode,
-    state.shellThickness,
-    state.capHeight,
-    state.buildDirection,
-    state.domeHalf
-  ]);
-
-  useEffect(() => {
-    if (!layered) return;
-    if (layerIndex > Math.max(0, layered.layerCount - 1)) setLayerIndex(Math.max(0, layered.layerCount - 1));
-    setPrintStartLayer((value) => clampLayerRange(value, value, layered.layerCount).start);
-    setPrintEndLayer((value) => clampLayerRange(value, value, layered.layerCount).end);
-  }, [layerIndex, layered]);
-
-  useEffect(() => {
-    setCurrentRowIndex(0);
-    setCompletedRows(new Set());
-  }, [layerIndex]);
-
-  useEffect(() => {
-    if (currentRowIndex > Math.max(0, rows.length - 1)) {
-      setCurrentRowIndex(Math.max(0, rows.length - 1));
-    }
-  }, [currentRowIndex, rows.length]);
+    setPrintStartLayer(1);
+    setPrintEndLayer(1);
+  }
 
   function setPatch(patch: Partial<BuilderState>) {
     setState((previous) => ({ ...previous, ...patch }));
+    resetBuildProgress();
     trackToolEvent(patch.shape ? 'shape_changed' : 'params_changed', {
       shape: patch.shape || state.shape,
       param: Object.keys(patch).join(',')
     });
+  }
+
+  function selectLayer(nextLayer: number) {
+    if (!layered) return;
+    const next = clampInt(nextLayer, 1, layered.layerCount) - 1;
+    setLayerIndex(next);
+    setCurrentRowIndex(0);
+    setCompletedRows(new Set());
   }
 
   async function copy(text: string, label: string, eventName: Parameters<typeof trackToolEvent>[0]) {
@@ -324,6 +307,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
       buildDirection: 'bottom-up',
       domeHalf: 'top'
     });
+    resetBuildProgress();
     trackToolEvent('params_changed', { shape: props.initialShape || 'circle', param: 'reset' });
   }
 
@@ -460,7 +444,6 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
     : result.shape === 'circle'
       ? `${result.dimensions.width} block circle`
       : `${result.dimensions.width} × ${result.dimensions.height} oval`;
-  const introTitle = props.title || 'Minecraft Circle Generator & Blueprint Builder';
   const selectedPrintRange = layered
     ? printMode === 'current'
       ? { start: layerIndex + 1, end: layerIndex + 1 }
@@ -832,21 +815,21 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
                 value={layerIndex}
                 onChange={(event) => {
                   const next = clampInt(Number(event.target.value), 0, layered.layerCount - 1);
-                  setLayerIndex(next);
+                  selectLayer(next + 1);
                   trackToolEvent('layer_changed', { shape: result.shape, layer: next + 1 });
                 }}
               />
               <div className="layer-actions">
-                <button type="button" onClick={() => setLayerIndex(0)}>
+                <button type="button" onClick={() => selectLayer(1)}>
                   First
                 </button>
-                <button type="button" onClick={() => setLayerIndex((value) => Math.max(0, value - 1))}>
+                <button type="button" onClick={() => selectLayer(layerIndex)}>
                   Previous layer
                 </button>
-                <button type="button" onClick={() => setLayerIndex((value) => Math.min(layered.layerCount - 1, value + 1))}>
+                <button type="button" onClick={() => selectLayer(layerIndex + 2)}>
                   Next layer
                 </button>
-                <button type="button" onClick={() => setLayerIndex(layered.layerCount - 1)}>
+                <button type="button" onClick={() => selectLayer(layered.layerCount)}>
                   Last
                 </button>
               </div>

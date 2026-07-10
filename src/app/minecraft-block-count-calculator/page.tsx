@@ -4,7 +4,7 @@ import { ToolShell } from '@/components/tool/ToolShell';
 import { softwareApplicationSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Block Count Calculator - Stacks & Totals',
+  title: 'Minecraft Block Count Calculator - Stacks, Shulkers & Blueprint Totals',
   description: 'Calculate Minecraft blueprint totals, 64-stacks, leftover blocks, current-layer counts, and shulker-style estimates for circles, ovals, spheres, and domes.',
   alternates: { canonical: '/minecraft-block-count-calculator' }
 };

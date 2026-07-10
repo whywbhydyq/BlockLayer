@@ -7,11 +7,6 @@ type ToolContentSectionProps = {
 export function ToolContentSection({ contentPackage }: ToolContentSectionProps) {
   return (
     <div className="below-workspace task-content-package" aria-label="Task-focused help and related links">
-      <section className="info-card citation-summary-card" aria-labelledby="citation-summary-heading">
-        <h3 id="citation-summary-heading">What this tool does</h3>
-        <p>{contentPackage.citationSummary}</p>
-      </section>
-
       <section className="info-card how-to" id="how-to-use">
         <h3>{contentPackage.howToTitle}</h3>
         <ol>

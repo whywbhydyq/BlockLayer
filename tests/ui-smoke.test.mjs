@@ -32,9 +32,16 @@ const adsenseGate = read('src/components/ads/AdSenseAutoAds.tsx');
 for (const needle of ['usePathname', 'adsense-auto-ads', 'pagead2.googlesyndication.com', 'adsbygoogle.js']) {
   assert(adsenseGate.includes(needle), `AdSense route gate should include ${needle}`);
 }
-for (const deniedPath of ['/about', '/privacy', '/terms', '/disclaimer', '/contact', '/404', '/_not-found']) {
-  assert(adsenseGate.includes(`'${deniedPath}'`), `AdSense route gate should deny ${deniedPath}`);
+assert(adsenseGate.includes('isAdEligiblePath'), 'AdSense route gate should use the explicit route allowlist');
+const publicPolicy = read('src/lib/publicPolicy.ts');
+for (const allowedPath of ['/', '/minecraft-circle-generator', '/minecraft-oval-generator', '/minecraft-sphere-generator', '/minecraft-dome-generator', '/minecraft-block-count-calculator']) {
+  assert(publicPolicy.includes(`'${allowedPath}'`), `AdSense allowlist should include ${allowedPath}`);
 }
+assert(publicPolicy.includes("pathname.startsWith('/presets/')"), 'Preset path policy should be explicit');
+assert(read('src/app/presets/[slug]/page.tsx').includes('robots: { index: false, follow: true }'), 'Preset detail routes should be noindex, follow');
+const sitemapSource = read('src/app/sitemap.ts');
+assert(sitemapSource.includes('indexableContentPaths'), 'Sitemap should use the approved indexable inventory');
+assert(!sitemapSource.includes('allContentPaths'), 'Sitemap should not publish preset and alias detail URLs');
 
 
 for (const page of ['src/app/about/page.tsx', 'src/app/privacy/page.tsx', 'src/app/terms/page.tsx', 'src/app/disclaimer/page.tsx', 'src/app/contact/page.tsx']) {

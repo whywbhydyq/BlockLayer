@@ -6,7 +6,8 @@ import { softwareApplicationSchema } from '@/lib/seo/schema';
 export const metadata: Metadata = {
   title: 'Minecraft Dome Blueprint Generator - Cap Height & Layer Rows',
   description:
-    'Generate Minecraft dome blueprints with top/bottom half selection, cap height, hollow or solid layer rows, counts, selected-range print, CSV, and share links.',
+    'Generate Minecraft dome blueprints with top or bottom half selection, cap height controls, hollow or solid layers, row segments, block counts, PNG/SVG/CSV export, selected-layer printing, and share links.',
+  robots: { index: false, follow: true },
   alternates: { canonical: '/minecraft-dome-blueprint' }
 };
 
