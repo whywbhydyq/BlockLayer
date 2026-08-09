@@ -13,6 +13,7 @@
   "include": [
     "src/lib/geometry/**/*.ts",
     "src/lib/export/**/*.ts",
+    "src/lib/projects/**/*.ts",
     "src/lib/render/**/*.ts",
     "tests/**/*.ts"
   ]

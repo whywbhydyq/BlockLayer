@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck:geometry": "tsc --module commonjs --target ES2020 --moduleResolution node --skipLibCheck --outDir .audit-dist src/lib/geometry/*.ts tests/geometry.test.ts",
-    "test": "npm run typecheck:test && node .audit-dist/tests/geometry.test.js && node .audit-dist/tests/export.test.js && node tests/ui-smoke.test.mjs",
+    "test": "npm run typecheck:test && node .audit-dist/tests/geometry.test.js && node .audit-dist/tests/export.test.js && node .audit-dist/tests/projects.test.js && node tests/ui-smoke.test.mjs",
     "audit": "node scripts/audit.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -17,6 +17,7 @@
     "validate": "npm run lint && npm run test && npm run audit && npm run build"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "next": "16.2.10",
     "react": "19.2.6",
     "react-dom": "19.2.6"

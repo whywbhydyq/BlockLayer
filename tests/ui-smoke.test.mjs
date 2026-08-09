@@ -22,7 +22,9 @@ for (const needle of [
   '<Footer />',
   'unofficial fan-made tool',
   'google-adsense-account',
-  'AdSenseAutoAds'
+  'AdSenseAutoAds',
+  "@vercel/analytics/next",
+  '<Analytics />'
 ]) {
   assert(layout.includes(needle), `layout should include ${needle}`);
 }
@@ -164,7 +166,16 @@ for (const needle of [
   "import('@/lib/export/exportPrint')",
   'preventNumberWheelChange',
   'urlUpdateTimeout',
-  'aria-modal="true"'
+  'aria-modal="true"',
+  'blueprintSignature',
+  'readActiveSession',
+  'writeActiveSession',
+  'completedRowsByLayer',
+  'Saved projects',
+  'Material plan',
+  'Resume data is stored only in this browser',
+  'saveProject',
+  'loadProject'
 ]) {
   assert(blueprintWorkspace.includes(needle), `BlueprintWorkspace should include ${needle}`);
 }
@@ -263,7 +274,9 @@ for (const needle of [
   'Final current-builder print visibility',
   'output-card',
   'related-link-list',
-  'intent-link-list'
+  'intent-link-list',
+  'project-manager-card',
+  'material-planner-card'
 ]) {
   assert(css.includes(needle), `CSS should include ${needle}`);
 }

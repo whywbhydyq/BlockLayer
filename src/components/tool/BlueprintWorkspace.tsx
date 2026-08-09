@@ -3,6 +3,18 @@ import { useEffect, useRef, useState, type WheelEvent, type KeyboardEvent } from
 import { trackToolEvent } from '@/lib/analytics/events';
 import { layerSummaryText, rowListText, summaryText } from '@/lib/export/exportText';
 import type { BlueprintResult, LayeredResult, RowSegment, ShapeKind, TwoDimensionalResult } from '@/lib/geometry/types';
+import {
+  blueprintSignature,
+  readActiveSession,
+  readProjectLibrary,
+  removeProject,
+  upsertProject,
+  writeActiveSession,
+  writeProjectLibrary,
+  type BlueprintProject,
+  type BlueprintSession
+} from '@/lib/projects/blueprintProjects';
+import { summarizeMaterialPlan, type MaterialEntry } from '@/lib/projects/materialPlan';
 import { BlueprintCanvas, type BlueprintCanvasHandle } from './BlueprintCanvas';
 import { LayerSummaryTable } from './LayerSummaryTable';
 import { WarningPanel } from './WarningPanel';
@@ -150,7 +162,11 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
   const [buildMode, setBuildMode] = useState(false);
   const [layerIndex, setLayerIndex] = useState(0);
   const [currentRowIndex, setCurrentRowIndex] = useState(0);
-  const [completedRows, setCompletedRows] = useState<Set<number>>(() => new Set());
+  const [completedRowsByLayer, setCompletedRowsByLayer] = useState<Record<string, number[]>>({});
+  const [materials, setMaterials] = useState<MaterialEntry[]>([]);
+  const [savedProjects, setSavedProjects] = useState<BlueprintProject[]>([]);
+  const [projectName, setProjectName] = useState('');
+  const [projectStatus, setProjectStatus] = useState('');
   const [printMode, setPrintMode] = useState<PrintMode>('current');
   const [printStartLayer, setPrintStartLayer] = useState(1);
   const [printEndLayer, setPrintEndLayer] = useState(1);
@@ -159,12 +175,18 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
   const manualCopyRef = useRef<HTMLTextAreaElement | null>(null);
   const companionRef = useRef<HTMLElement | null>(null);
   const urlUpdateTimeout = useRef<number | null>(null);
+  const loadedSignatureRef = useRef<string | null>(null);
+  const skipPersistSignatureRef = useRef<string | null>(null);
   const { result, pending: blueprintPending, error: blueprintError } = useBlueprintResult(state, props.initialResult);
   const layered = isLayered(result) ? result : null;
   const currentLayer = layered ? layered.layers[layerIndex] || layered.layers[0] : null;
   const rows = currentLayer ? currentLayer.rows : isFlat(result) ? result.rows : [];
   const currentRow = rows[Math.min(currentRowIndex, Math.max(0, rows.length - 1))] || null;
+  const progressLayerKey = currentLayer ? String(layerIndex) : 'flat';
+  const completedRows = new Set(completedRowsByLayer[progressLayerKey] || []);
   const completedCount = rows.filter((row) => completedRows.has(row.z)).length;
+  const currentBlueprintSignature = blueprintSignature(state);
+  const materialPlan = summarizeMaterialPlan(result.totalBlocks, materials);
   const maxRoundDiameter = state.shape === 'sphere' || state.shape === 'dome' ? 257 : 512;
   const maxRoundRadius = state.shape === 'sphere' || state.shape === 'dome' ? 128 : 256;
 
@@ -172,6 +194,40 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
     trackToolEvent('tool_view', { shape: state.shape, title: props.title || 'Minecraft Circle Generator & Blueprint Builder' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // Saved projects are local-only and can only be read after hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSavedProjects(readProjectLibrary(window.localStorage));
+  }, []);
+
+  useEffect(() => {
+    const restored = readActiveSession(window.localStorage, currentBlueprintSignature);
+    skipPersistSignatureRef.current = currentBlueprintSignature;
+    loadedSignatureRef.current = currentBlueprintSignature;
+    // Restore one coherent session; the guard below prevents the pre-restore render from overwriting it.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLayerIndex(restored?.progress.layerIndex ?? 0);
+    setCurrentRowIndex(restored?.progress.currentRowIndex ?? 0);
+    setCompletedRowsByLayer(restored?.progress.completedRowsByLayer ?? {});
+    setMaterials(restored?.materials ?? []);
+  }, [currentBlueprintSignature]);
+
+  useEffect(() => {
+    if (loadedSignatureRef.current !== currentBlueprintSignature) return;
+    if (skipPersistSignatureRef.current === currentBlueprintSignature) {
+      skipPersistSignatureRef.current = null;
+      return;
+    }
+    try {
+      writeActiveSession(window.localStorage, currentBlueprintSignature, {
+        progress: { layerIndex, currentRowIndex, completedRowsByLayer },
+        materials
+      });
+    } catch {
+      // Storage can be blocked or full; the interactive builder must remain usable.
+    }
+  }, [completedRowsByLayer, currentBlueprintSignature, currentRowIndex, layerIndex, materials]);
 
   useEffect(() => {
     if (!manualCopy) return;
@@ -255,7 +311,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
   function resetBuildProgress() {
     setLayerIndex(0);
     setCurrentRowIndex(0);
-    setCompletedRows(new Set());
+    setCompletedRowsByLayer({});
     setPrintStartLayer(1);
     setPrintEndLayer(1);
   }
@@ -274,7 +330,6 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
     const next = clampInt(nextLayer, 1, layered.layerCount) - 1;
     setLayerIndex(next);
     setCurrentRowIndex(0);
-    setCompletedRows(new Set());
   }
 
   async function copy(text: string, label: string, eventName: Parameters<typeof trackToolEvent>[0]) {
@@ -410,11 +465,11 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
 
   function toggleRowDone() {
     if (!currentRow) return;
-    setCompletedRows((previous) => {
-      const next = new Set(previous);
+    setCompletedRowsByLayer((previous) => {
+      const next = new Set(previous[progressLayerKey] || []);
       if (next.has(currentRow.z)) next.delete(currentRow.z);
       else next.add(currentRow.z);
-      return next;
+      return { ...previous, [progressLayerKey]: Array.from(next).sort((left, right) => left - right) };
     });
     trackToolEvent('build_row_done_toggled', { shape: result.shape, row: currentRow.z, layer: currentLayer ? layerIndex + 1 : undefined });
   }
@@ -425,6 +480,87 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
       trackToolEvent('build_mode_toggled', { shape: result.shape, active: next });
       return next;
     });
+  }
+
+  function currentSession(): BlueprintSession {
+    return {
+      progress: { layerIndex, currentRowIndex, completedRowsByLayer },
+      materials
+    };
+  }
+
+  function persistProjects(next: BlueprintProject[]) {
+    setSavedProjects(next);
+    writeProjectLibrary(window.localStorage, next);
+  }
+
+  function saveProject() {
+    const name = projectName.trim();
+    if (!name) {
+      setProjectStatus('Enter a project name first.');
+      return;
+    }
+    const existing = savedProjects.find((project) => project.name.toLocaleLowerCase() === name.toLocaleLowerCase());
+    const project: BlueprintProject = {
+      id: existing?.id || window.crypto.randomUUID?.() || `project-${Date.now()}`,
+      name,
+      updatedAt: new Date().toISOString(),
+      state,
+      session: currentSession()
+    };
+    try {
+      const next = upsertProject(savedProjects, project);
+      persistProjects(next);
+      writeActiveSession(window.localStorage, blueprintSignature(project.state), project.session);
+      setProjectStatus(existing ? `Updated ${name}.` : `Saved ${name}.`);
+      trackToolEvent('project_saved', { shape: result.shape, projectId: project.id });
+    } catch {
+      setProjectStatus('Browser storage is unavailable; this project was not saved.');
+    }
+  }
+
+  function loadProject(project: BlueprintProject) {
+    try {
+      writeActiveSession(window.localStorage, blueprintSignature(project.state), project.session);
+    } catch {
+      // Loading an in-memory project still works if persistent storage is blocked.
+    }
+    setState(project.state);
+    setLayerIndex(project.session.progress.layerIndex);
+    setCurrentRowIndex(project.session.progress.currentRowIndex);
+    setCompletedRowsByLayer(project.session.progress.completedRowsByLayer);
+    setMaterials(project.session.materials);
+    setProjectName(project.name);
+    setProjectStatus(`Loaded ${project.name}.`);
+    trackToolEvent('project_loaded', { shape: project.state.shape, projectId: project.id });
+  }
+
+  function deleteProject(project: BlueprintProject) {
+    try {
+      persistProjects(removeProject(savedProjects, project.id));
+      setProjectStatus(`Deleted ${project.name}.`);
+    } catch {
+      setProjectStatus('Browser storage is unavailable; the project was not deleted.');
+    }
+  }
+
+  function addMaterial(name: string) {
+    if (materials.some((material) => material.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      setProjectStatus(`${name} is already in the material plan.`);
+      return;
+    }
+    setMaterials((previous) => [
+      ...previous,
+      { id: window.crypto.randomUUID?.() || `material-${Date.now()}-${previous.length}`, name, count: 0 }
+    ]);
+  }
+
+  function updateMaterial(id: string, patch: Partial<Pick<MaterialEntry, 'name' | 'count'>>) {
+    setMaterials((previous) => previous.map((material) => (material.id === id ? { ...material, ...patch } : material)));
+  }
+
+  function deleteMaterial(id: string) {
+    setMaterials((previous) => previous.filter((material) => material.id !== id));
   }
 
   async function fullscreenCanvas() {
@@ -1011,6 +1147,117 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
             </dl>
           </section>
 
+          <section className="result-card project-manager-card">
+            <div className="card-kicker">Saved projects</div>
+            <p>Save this blueprint, its Companion Mode position, completed rows, and material plan.</p>
+            <label className="project-name-field">
+              <span>Project name</span>
+              <input
+                type="text"
+                maxLength={100}
+                value={projectName}
+                placeholder="Example: Spawn dome"
+                onChange={(event) => setProjectName(event.target.value)}
+              />
+            </label>
+            <button type="button" className="share-button" onClick={saveProject}>
+              Save current project
+            </button>
+            {savedProjects.length > 0 ? (
+              <ul className="saved-project-list">
+                {savedProjects.map((project) => (
+                  <li key={project.id}>
+                    <div>
+                      <strong>{project.name}</strong>
+                      <span>
+                        {shapeLabels[project.state.shape]} · {new Date(project.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div>
+                      <button type="button" onClick={() => loadProject(project)}>
+                        Load
+                      </button>
+                      <button type="button" className="danger-text-button" onClick={() => deleteProject(project)}>
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-local-state">No saved projects in this browser yet.</p>
+            )}
+            <p className="local-storage-note">Resume data is stored only in this browser. It is not uploaded or synced.</p>
+            {projectStatus && (
+              <p className="copy-status" role="status">
+                {projectStatus}
+              </p>
+            )}
+          </section>
+
+          <section className="result-card material-planner-card">
+            <div className="card-kicker">Material plan</div>
+            <p>Assign exact counts yourself. BlockLayer does not guess block types from the blueprint geometry.</p>
+            <div className="material-palette" aria-label="Quick material palette">
+              {['Stone', 'Deepslate', 'Glass', 'Quartz', 'Concrete', 'Wood'].map((name) => (
+                <button type="button" key={name} onClick={() => addMaterial(name)}>
+                  + {name}
+                </button>
+              ))}
+            </div>
+            {materials.length > 0 ? (
+              <div className="material-entry-list">
+                {materials.map((material) => {
+                  const summary = materialPlan.entries.find((entry) => entry.id === material.id);
+                  return (
+                    <div className="material-entry" key={material.id}>
+                      <label>
+                        <span>Material</span>
+                        <input
+                          type="text"
+                          maxLength={80}
+                          value={material.name}
+                          aria-label="Material name"
+                          onChange={(event) => updateMaterial(material.id, { name: event.target.value })}
+                        />
+                      </label>
+                      <label>
+                        <span>Blocks</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={10_000_000}
+                          value={material.count}
+                          aria-label={`${material.name || 'Material'} block count`}
+                          onWheel={preventNumberWheelChange}
+                          onChange={(event) => updateMaterial(material.id, { count: Math.max(0, Math.round(Number(event.target.value) || 0)) })}
+                        />
+                      </label>
+                      <p>
+                        {summary?.fullStacks || 0} full stacks + {summary?.remainder || 0} blocks
+                        <br />
+                        {summary?.shulkerBoxes || 0} shulker boxes needed
+                      </p>
+                      <button type="button" className="danger-text-button" onClick={() => deleteMaterial(material.id)}>
+                        Remove
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="empty-local-state">Add materials, then enter the real number of blocks assigned to each one.</p>
+            )}
+            <dl className={`material-total ${materialPlan.overAssigned > 0 ? 'over' : materialPlan.isBalanced ? 'balanced' : ''}`.trim()}>
+              <dt>Blueprint total</dt>
+              <dd>{materialPlan.totalBlocks.toLocaleString()}</dd>
+              <dt>Assigned</dt>
+              <dd>{materialPlan.allocated.toLocaleString()}</dd>
+              <dt>{materialPlan.overAssigned > 0 ? 'Over-assigned' : 'Unassigned'}</dt>
+              <dd>{(materialPlan.overAssigned || materialPlan.remaining).toLocaleString()}</dd>
+            </dl>
+          </section>
+
           <section id="export-and-share" className="result-card export-card">
             <div className="card-kicker">Export & share</div>
             <button type="button" onClick={copyRows}>
@@ -1109,7 +1356,7 @@ export function BlueprintWorkspace(props: BlueprintWorkspaceProps) {
 
           <section className="result-card build-mode-card">
             <div className="card-kicker">Build while playing</div>
-            <p>Use Companion Mode on a second screen or a narrow browser beside Minecraft.</p>
+            <p>Use Companion Mode on a second screen or a narrow browser beside Minecraft. Completed rows resume after refresh on this browser.</p>
             <button type="button" className={buildMode ? 'share-button' : ''} onClick={toggleBuildMode}>
               {buildMode ? 'Exit Companion Mode' : 'Open Companion Mode'}
             </button>

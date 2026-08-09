@@ -2335,3 +2335,151 @@ body {
   font-size: 13px;
   line-height: 1.45;
 }
+
+/* Local project resume and honest, user-assigned material planning. */
+.project-manager-card,
+.material-planner-card {
+  display: grid;
+  gap: 10px;
+}
+.project-manager-card > p,
+.material-planner-card > p {
+  margin: 0;
+  color: #475467;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.project-name-field,
+.material-entry label {
+  display: grid;
+  gap: 4px;
+}
+.project-name-field span,
+.material-entry label span {
+  color: #475467;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.project-name-field input,
+.material-entry input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #c9d4e3;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: #fff;
+  color: #101828;
+}
+.saved-project-list {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.saved-project-list li {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.saved-project-list li > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.saved-project-list strong,
+.saved-project-list span {
+  display: block;
+}
+.saved-project-list span {
+  margin-top: 2px;
+  color: #667085;
+  font-size: 11px;
+}
+.saved-project-list button,
+.material-palette button,
+.danger-text-button {
+  min-height: 32px;
+  border: 1px solid #c9d4e3;
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: #fff;
+  color: #344054;
+  font-weight: 850;
+  cursor: pointer;
+}
+.danger-text-button {
+  color: #b42318 !important;
+}
+.local-storage-note,
+.empty-local-state {
+  padding: 8px;
+  border-radius: 7px;
+  background: #f2f4f7;
+}
+.material-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.material-palette button {
+  border-color: #bcd6fb;
+  color: #075de2;
+}
+.material-entry-list {
+  display: grid;
+  gap: 8px;
+}
+.material-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.material-entry p {
+  margin: 0;
+  color: #475467;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.material-entry > button {
+  justify-self: end;
+}
+.material-total {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 10px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.material-total dt {
+  color: #475467;
+  font-size: 12px;
+  font-weight: 800;
+}
+.material-total dd {
+  margin: 0;
+  color: #101828;
+  font-size: 12px;
+  font-weight: 950;
+}
+.material-total.balanced {
+  border-color: #75c69a;
+  background: #ecfdf3;
+}
+.material-total.over {
+  border-color: #f4a6a0;
+  background: #fff1f0;
+}

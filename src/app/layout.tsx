@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { AdSenseAutoAds } from '@/components/ads/AdSenseAutoAds';
 import { Header } from '@/components/layout/Header';
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {children}
         <Footer />
         <AdSenseAutoAds />
+        <Analytics />
       </body>
     </html>
   );
